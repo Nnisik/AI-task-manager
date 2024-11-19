@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<h1 class="header">Task Manager</h1>
-<div class="content">
-    <table>
-        <tr>
-            <th>Task</th>
-            <th>Added</th>
-            <th>Action</th>
-        </tr>
+<div class="container">
+    <h1 class="header">Task Manager</h1>
+    <div class="tasks-list">
         {% for task in tasks %}
-            <tr>
-                <td>{{ task.content }}</td>
-                <td>{{ task.data_created.date() }}</td>
-                <td>
-                    <a href="/delete/{{ task.id  }}">Delete</a>
-                    <br>
-                    <a href="/update/{{ task.id  }}">Update</a>
-                </td>
-            </tr>
+        <div class="task">
+            <div class="task__info">
+                <h3>{{ task.content }}</h3>
+                <p>{{ task.data_created.date() }}</p>
+            </div>
+            <div class="task__options">
+                <a class="task__button" href="/update/{{ task.id }}">
+                    <img src="{{url_for('static', filename='img/edit-tools.png')}}">
+                </a>
+                <a class="task__button" href="/delete/{{ task.id  }}">
+                    <img src="{{url_for('static', filename='img/loschen.png')}}">
+                </a>
+            </div>
+        </div>
         {% endfor %}
-    </table>
-    <form action="/" method="POST">
+    </div>
+    <!-- add new task form-->
+    <form action="/" method="POST" class="new-task-form">
         <input type="text" name="content" id="content">
         <input type="submit" value="Add Task">
     </form>
