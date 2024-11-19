@@ -41,8 +41,6 @@ def index():
         tasks = Todo.query.order_by(Todo.data_created).all()
         return render_template("index.html", tasks=tasks)
 
-# TODO: separate page for creating tasks
-
 # delete tasks function; then reloads the index page
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -57,7 +55,6 @@ def delete(id):
         return "There was a problem deleting your task"
 
 # task update page
-# FIXME: redo page layout -> make bigger, more as an indendent page
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
     task = Todo.query.get_or_404(id)
