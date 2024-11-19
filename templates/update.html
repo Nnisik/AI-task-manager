@@ -1,12 +1,16 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<h1 class="header">Update Task: "{{ task.content }}"</h1>
-<!-- TODO: rework page structure and style for more consistant and complex styling -->
-<div class="content">
-    <form action="/update/{{ task.id }}" method="POST">
-        <input type="text" name="content" id="content" value="{{ task.content }}">
-        <input type="submit" value="Update">
-    </form>
+<button class="go-back-btn"><</button>
+<div class="container">
+    <h1 class="header">Update Task: "{{ task.content }}"</h1>
+    <div class="content">
+        <form class="update-form" action="/update/{{ task.id }}" method="POST">
+            <div class="update-form__container">
+                <input class="update-form__container__content-field" type="text" name="content" value="{{ task.content }}">
+            </div>
+            <button class="update-form__update-btn" type="submit">Update</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

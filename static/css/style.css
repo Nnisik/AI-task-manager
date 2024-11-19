@@ -6,15 +6,17 @@
 }
 
 body {
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50%;
+    display: flex;
+    justify-content: center;
+    width: 100%;
     height: calc(100vh - 2rem);
     padding: 1rem;
     overscroll-behavior: none;
 }
 
+.container {
+    width: 50%;
+}
 .header {
     font-size: 3rem;
     letter-spacing: 5px;
@@ -78,4 +80,69 @@ body {
         padding: 0.3rem 0.5rem;
         font-size: 0.7rem;
     }
+}
+
+/* update task page styling */
+.go-back-btn {
+    position: absolute;
+    top: 7px;
+    left: 110px;
+    width: 1.5rem;
+    aspect-ratio: 1/1;
+    font-size: 1rem;
+    background: transparent;
+    color: grey;
+    border: 1px solid grey;
+    border-radius: 50%;
+    transition-duration: 0.3s;
+
+    &:hover {
+        color: black;
+        border: 1px solid black;
+        box-shadow: gray;
+    }
+}
+
+.content {
+    padding: 2rem;
+}
+
+.update-form {
+    position: relative;
+    height: 200px;
+}
+
+.update-form__container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    & input {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        border: none;
+        outline: none;
+        border-bottom: 1px solid grey;
+        text-align: center;
+        font-size: 1.2rem;
+        padding-bottom: 0.2rem;
+    }
+}
+
+.update-form__update-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-top: 2rem;
+    font-size: 1rem;
+    height: 30px;
+    aspect-ratio: 16/5;
+    border: 1px solid black;
+    background: transparent;
 }
