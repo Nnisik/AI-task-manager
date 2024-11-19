@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<h1 class="header">Update Task</h1>
+<h1 class="header">Update Task: "{{ task.content }}"</h1>
+<!-- TODO: rework page structure and style for more consistant and complex styling -->
 <div class="content">
     <form action="/update/{{ task.id }}" method="POST">
         <input type="text" name="content" id="content" value="{{ task.content }}">

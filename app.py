@@ -2,10 +2,14 @@ from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
+# connection to database
+# TODO: transition SQLite database to PostgreSQL
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
 
+# new Task class
+# TODO: add more fields
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
@@ -15,9 +19,13 @@ class Todo(db.Model):
     def __repr__(self):
         return '<Task %r>' % self.id
 
+# main page
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    ## variant of page activity when were made any changes to database filling
+    ## made using POST http protocol
     if request.method == 'POST':
+        # FIXME: add form validation
         task_content = request.form['content']
         new_task = Todo(content = task_content)
 
@@ -33,6 +41,9 @@ def index():
         tasks = Todo.query.order_by(Todo.data_created).all()
         return render_template("index.html", tasks=tasks)
 
+# TODO: separate page for creating tasks
+
+# delete tasks function; then reloads the index page
 @app.route('/delete/<int:id>')
 def delete(id):
     task_to_delete = Todo.query.get_or_404(id)
@@ -45,6 +56,8 @@ def delete(id):
     except:
         return "There was a problem deleting your task"
 
+# task update page
+# FIXME: redo page layout -> make bigger, more as an indendent page
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
     task = Todo.query.get_or_404(id)

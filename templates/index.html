@@ -2,7 +2,9 @@
 
 {% block body %}
 <div class="container">
-    <h1 class="header">Task Manager</h1>
+    <h1 class="header">To Do List</h1>
+    <!-- TODO: message for when there are no not complited tasks -->
+    <!-- TODO: add filter and sorting buttons for tasks-->
     <div class="tasks-list">
         {% for task in tasks %}
         <div class="task">
@@ -22,6 +24,8 @@
         {% endfor %}
     </div>
     <!-- add new task form-->
+    <!-- TODO: restyle it to modal window -->
+    <!-- FIXME: implement fields validation -->
     <form action="/" method="POST" class="new-task-form">
         <input type="text" name="content" id="content">
         <input type="submit" value="Add Task">
