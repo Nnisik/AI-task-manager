@@ -14,23 +14,7 @@
     <!-- TODO: message for when there are no not completed tasks -->
     <p class="no-tasks-message">Looks like there is no tasks you need to do. <br>Time to make plans for future.</p>
     <!-- TODO: add filter and sorting buttons for tasks-->
-    <div class="tasks-list">
-      <!-- TODO: API connection to server to fetch data from database
-      <div class="task">
-        <div class="task__info">
-          <h3>{{ task.content }}</h3>
-          <p>{{ task.data_created.date() }}</p>
-        </div>
-        <div class="task__options">
-          <a class="task__button" href="/update/{{ task.id }}">
-            <img src="{{url_for('static', filename='img/edit-tools.png')}}">
-          </a>
-          <a class="task__button" href="/delete/{{ task.id  }}">
-            <img src="{{url_for('static', filename='img/loschen.png')}}">
-          </a>
-        </div>
-      </div>
-      -->
+    <div class="tasks-list" id="tasks-list">
     </div>
     <!-- add new task form-->
     <!-- TODO: restyle it to modal window -->
