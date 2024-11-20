@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hi</title>
+  <link rel="stylesheet" href="src/css/style.css">
+  <script src="index.js"></script>
+</head>
+<body>
+  <!-- TODO: work on frontend functionality using JS -->
+  <!-- TODO: SPA -->
+  <div class="container">
+    <h1 class="header">To Do List</h1>
+    <!-- TODO: message for when there are no not completed tasks -->
+    <p class="no-tasks-message">Looks like there is no tasks you need to do. <br>Time to make plans for future.</p>
+    <!-- TODO: add filter and sorting buttons for tasks-->
+    <div class="tasks-list">
+      <!-- TODO: API connection to server to fetch data from database
+      <div class="task">
+        <div class="task__info">
+          <h3>{{ task.content }}</h3>
+          <p>{{ task.data_created.date() }}</p>
+        </div>
+        <div class="task__options">
+          <a class="task__button" href="/update/{{ task.id }}">
+            <img src="{{url_for('static', filename='img/edit-tools.png')}}">
+          </a>
+          <a class="task__button" href="/delete/{{ task.id  }}">
+            <img src="{{url_for('static', filename='img/loschen.png')}}">
+          </a>
+        </div>
+      </div>
+      -->
+    </div>
+    <!-- add new task form-->
+    <!-- TODO: restyle it to modal window -->
+    <!-- FIXME: implement fields validation -->
+    <form action="/" method="POST" class="new-task-form">
+      <label for="content">Add new task</label>
+      <input type="text" name="content" id="content">
+      <input type="submit" value="Add Task">
+    </form>
+  </div>
+</body>
+</html>
