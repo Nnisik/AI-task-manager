@@ -22,24 +22,22 @@ class Todo(db.Model):
 # main page
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    ## variant of page activity when were made any changes to database filling
-    ## made using POST http protocol
-    if request.method == 'POST':
-        # FIXME: add form validation
-        task_content = request.form['content']
-        new_task = Todo(content = task_content)
+    return render_template("index.html")
 
-        try:
-            db.session.add(new_task)
-            db.session.commit()
-            return redirect('/')
+@app.route('/api/get-tasks', methods=['GET'])
+def get_tasks():
+    tasks = Todo.query.order_by(Todo.data_created).all()
+    tasks_set, i = {}, 0
+    for task in tasks:
+        task = {
+            'content': task.content,
+            'completed': task.completed,
+            'data_created': task.data_created
+        }
+        tasks_set[i] = task
+        i += 1
 
-        except:
-            return "There was an issue adding your task"
-
-    else:
-        tasks = Todo.query.order_by(Todo.data_created).all()
-        return render_template("index.html", tasks=tasks)
+    return tasks_set
 
 # delete tasks function; then reloads the index page
 @app.route('/delete/<int:id>')
