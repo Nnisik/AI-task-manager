@@ -1,34 +1,10 @@
-{% extends 'base.html' %}
-
-{% block body %}
-<div class="container">
-    <h1 class="header">To Do List</h1>
-    <!-- TODO: message for when there are no not complited tasks -->
-    <!-- TODO: add filter and sorting buttons for tasks-->
-    <div class="tasks-list">
-        {% for task in tasks %}
-        <div class="task">
-            <div class="task__info">
-                <h3>{{ task.content }}</h3>
-                <p>{{ task.data_created.date() }}</p>
-            </div>
-            <div class="task__options">
-                <a class="task__button" href="/update/{{ task.id }}">
-                    <img src="{{url_for('static', filename='img/edit-tools.png')}}">
-                </a>
-                <a class="task__button" href="/delete/{{ task.id  }}">
-                    <img src="{{url_for('static', filename='img/loschen.png')}}">
-                </a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    <!-- add new task form-->
-    <!-- TODO: restyle it to modal window -->
-    <!-- FIXME: implement fields validation -->
-    <form action="/" method="POST" class="new-task-form">
-        <input type="text" name="content" id="content">
-        <input type="submit" value="Add Task">
-    </form>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Boo</title>
+</head>
+<body>
+    <video width="400" height="300" autoplay muted></video>
+</body>
+</html>
