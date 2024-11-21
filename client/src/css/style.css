@@ -26,6 +26,25 @@ body {
     border-bottom: 1px solid black;
 }
 
+.task-list-controls {
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+    width: 90%;
+    display: flex;
+    justify-content: right;
+    gap: 5px;
+    border-bottom: 1px solid grey;
+
+    & button {
+        padding: 5px;
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+        background: transparent;
+        border-radius: 5px;
+    }
+}
+
+
 .no-tasks-message {
     text-align: center;
     font-size: 1rem;
