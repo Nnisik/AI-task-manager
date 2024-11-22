@@ -1,9 +1,12 @@
 // TODO: sorting by name function
 // TODO: sorting by date function
 
+// function for emptying tasks list
+function clearTaskList() {
+    document.getElementById("tasks-list").innerHTML = "";
+}
 
 // draws a message of task's list is currently empty
-// FIXME: writes "</br>"
 function drawEmptyListMessage() {
     const emptyListMessage = document.createElement("p");
     emptyListMessage.classList.add("no-tasks-message");
@@ -40,7 +43,9 @@ function drawTaskList(taskList) {
             taskOptions.classList.add("task__options");
             // task edit button
             const editButton = document.createElement("a");
-            editButton.classList.add("task__button");editButton.href = `http://localhost:5000/api/update/${task["id"]}`;
+            editButton.classList.add("task__button");
+            editButton.classList.add("edit-btn");
+            editButton.href = `http://localhost:5000/api/update/${task["id"]}`;
             const editBtnImg = document.createElement("img");
             editBtnImg.src = "./src/icons/edit-tools.png";
             editButton.appendChild(editBtnImg);
@@ -84,8 +89,11 @@ function getTasks() {
     }
 }
 
+let taskList;
+
 document.addEventListener("DOMContentLoaded", () => {
-    let  taskList = getTasks();
+    taskList = getTasks();
+
     if (!taskList) {
         drawEmptyListMessage();
     }
@@ -96,5 +104,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("add-task-btn").addEventListener("click", () => {
         document.getElementById("add-task").style.display = "flex";
     });
+
+    document.querySelectorAll(".close-button").forEach((button) => {
+        button.onclick = () => {
+            document.querySelectorAll(".modal").forEach((modal) => {
+                modal.style.display = "none";
+            });
+        }
+    });
+
+    document.querySelectorAll("edit-btn").onclick = () => {
+        document.getElementById("task-update").style.display = "flex";
+    }
     console.log("Building something that's not sucks ✨");
 });
