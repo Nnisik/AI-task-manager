@@ -23,6 +23,7 @@ function drawTaskList(taskList) {
             // task container
             const taskContainer = document.createElement("div");
             taskContainer.classList.add("task");
+            taskContainer.classList.add("flex");
 
             // task info section
             const taskInfo = document.createElement("div");

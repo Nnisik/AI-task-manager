@@ -6,16 +6,16 @@
   <link rel="stylesheet" href="src/css/style.css">
   <script src="index.js"></script>
 </head>
-<body>
+<body class="flex">
 
   <div class="container">
     <h1 class="header">To Do List</h1>
     <!-- sorting buttons for tasks-->
-    <div class="task-list-controls">
+    <div class="task-list-controls flex">
       <button id="by-name-sort">ABC</button>
       <button id="by-date-sort">Date</button>
     </div>
-    <div class="tasks-list" id="tasks-list">
+    <div class="tasks-list flex" id="tasks-list">
     </div>
   </div>
 
@@ -23,7 +23,7 @@
 
   <!-- add new task form -->
   <div id="add-task" class="modal">
-    <div class="modal__content">
+    <div class="modal__content flex">
       <button class="close-button">x</button>
       <h3>Create New Task</h3>
       <form class="new-task__form">
@@ -35,7 +35,7 @@
 
   <!-- task update form -->
   <div id="task-update" class="modal">
-    <div class="modal__content">
+    <div class="modal__content flex">
       <button class="close-button">x</button>
       <h3>Update Task</h3>
       <form class="task-update__form">
