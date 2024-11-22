@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
@@ -56,10 +56,17 @@ def get_data():
     return tasks_set
 
 # TODO: APIs
-# TODO: API for creating new task and adding its data into a database
-@app.route('api/create_task', method=['POST'])
+# API for creating new task and adding its data into a database
+@app.route('api/create_task/', method=['POST'])
 def create_task():
-    pass
+    content = request.json['content']
+    new_task = Todo(content = content)
+    try:
+        db.session.add(new_task)
+        db.session.commit()
+        return
+    except:
+        return "There was an issue adding your task"
 
 # TODO: API for deleting task from database
 @app.route('api/delete_task/<int:id>', method=['POST'])
@@ -72,6 +79,7 @@ def update_task(id):
     pass
 
 
+"""
 # delete tasks function; then reloads the index page
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -84,7 +92,9 @@ def delete(id):
 
     except:
         return "There was a problem deleting your task"
+"""
 
+"""
 # task update page
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
@@ -100,7 +110,7 @@ def update(id):
             return "There was an issue updating your task"
     else:
         return render_template('update.html', task=task)
-
+"""
 
 if __name__ == '__main__':
     app.run(debug=True)
