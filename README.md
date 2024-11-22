@@ -1,17 +1,9 @@
 # AI-task-manager
 
-
-
-
 ### Currently working on
 * project UI
   * include using JavaScript
     * form validation using JS before sending data
-    * 
-  * make UI more "fancy" 💅
-    * page style more complex
-    * "add new task" form
-      * restyle it to be separate page section/modal window
 
 ### TODO
 * move to PostgreSQL from SQLite for data storage
