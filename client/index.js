@@ -1,6 +1,5 @@
 // TODO: sorting by name function
 // TODO: sorting by date function
-// TODO: clears "tasks-list" element before refilling
 
 
 // draws a message of task's list is currently empty
@@ -8,7 +7,7 @@
 function drawEmptyListMessage() {
     const emptyListMessage = document.createElement("p");
     emptyListMessage.classList.add("no-tasks-message");
-    emptyListMessage.innerText = "Looks like there is no tasks you need to do. <br>Time to make plans for future.";
+    emptyListMessage.innerText = "Looks like there is no tasks you need to do. Time to make plans for future.";
     document.querySelector("#tasks-list").appendChild(emptyListMessage);
 }
 
@@ -93,5 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
     else {
         drawTaskList();
     }
+
+    document.getElementById("add-task-btn").addEventListener("click", () => {
+        document.getElementById("add-task").style.display = "flex";
+    });
     console.log("Building something that's not sucks ✨");
 });

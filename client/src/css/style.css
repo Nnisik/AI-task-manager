@@ -13,13 +13,13 @@ body {
     display: flex;
     justify-content: center;
     width: 100%;
-    height: calc(100vh - 2rem);
-    padding: 1rem;
+    height: 100vh;
 }
 
 .container {
     width: 50%;
 }
+
 .header {
     font-size: 3rem;
     letter-spacing: 5px;
@@ -174,4 +174,86 @@ body {
     aspect-ratio: 16/5;
     border: 1px solid black;
     background: transparent;
+}
+
+.modal {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: rgba(76, 76, 76, 0.69);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal__content {
+    height: fit-content;
+    width: fit-content;
+    padding: 2rem 1rem;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    & h3 {
+        text-align: center;
+        font-size: 1.5rem;
+        border-bottom: 1px solid gray;
+    }
+}
+
+.new-task__form,
+.task-update__form {
+    margin-top: 1rem;
+
+    & input[type="text"] {
+        margin: 0 1rem;
+        padding: 5px 10px;
+        width: 13rem;
+        border-radius: 6px;
+    }
+}
+
+#new-task__btn,
+#task-update__btn {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    padding: 0.3rem 1rem;
+    width: fit-content;
+    border-radius: 6px;
+}
+
+.close-button {
+    width: fit-content;
+    position: relative;
+    top: -15px;
+    right: -250px;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: gray;
+    transition-duration: 0.3s;
+
+    &:hover {
+        color: black;
+    }
+}
+
+#add-task-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    height: 38px;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    color: gray;
+    transition-duration: 0.3s;
+
+    &:hover {
+        color: black;
+    }
 }
