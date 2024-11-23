@@ -16,7 +16,7 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
     completed = db.Column(db.Integer, default=0)
-    data_created  = db.Column(db.DateTime, default=datetime.utcnow)
+    data_created  = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return '<Task %r>' % self.id
@@ -24,20 +24,6 @@ class Todo(db.Model):
 # main page
 @app.route('/')
 def index():
-    ## variant of page activity when were made any changes to database filling
-    ## made using POST http protocol
-#    if request.method == 'POST':
-        # FIXME: add form validation
-#        task_content = request.form['content']
- #       new_task = Todo(content = task_content)
-  #      try:
-   #         db.session.add(new_task)
-    #        db.session.commit()
-     #       return redirect('/')
-      #  except:
-       #     return "There was an issue adding your task"
-    # else:
-    #    tasks = Todo.query.order_by(Todo.data_created).all()
     return render_template("index.html")
 
 # TODO: API for getting all tasks from database
@@ -55,7 +41,7 @@ def get_data():
         tasks_set.append(task_set)
     return tasks_set
 
-# TODO: APIs
+# APIs
 # API for creating new task and adding its data into a database
 @app.route('api/create_task/', method=['POST'])
 def create_task():
@@ -68,49 +54,28 @@ def create_task():
     except:
         return "There was an issue adding your task"
 
-# TODO: API for deleting task from database
-@app.route('api/delete_task/<int:id>', method=['POST'])
+# API for deleting task from database
+@app.route('api/delete_task/<int:id>', method=['DELETE'])
 def delete_task(id):
-    pass
-
-# TODO: API for updating task
-@app.route('api/update_task/<int:id>', method=['POST'])
-def update_task(id):
-    pass
-
-
-"""
-# delete tasks function; then reloads the index page
-@app.route('/delete/<int:id>')
-def delete(id):
-    task_to_delete = Todo.query.get_or_404(id)
-
-    try:
-        db.session.delete(task_to_delete)
-        db.session.commit()
-        return redirect('/')
-
-    except:
-        return "There was a problem deleting your task"
-"""
-
-"""
-# task update page
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
-def update(id):
     task = Todo.query.get_or_404(id)
+    try:
+        db.session.delete(task)
+        db.session.commit()
+        return
+    except:
+        return "There was an issue deleting your task"
 
-    if request.method == 'POST':
-        task.content = request.form['content']
-
-        try:
-            db.session.commit()
-            return redirect('/')
-        except:
-            return "There was an issue updating your task"
-    else:
-        return render_template('update.html', task=task)
-"""
+# API for updating task
+@app.route('api/update_task/<int:id>', method=['PUT'])
+def update_task(id):
+    task = Todo.query.get_or_404(id)
+    try:
+        task.content = request.json['content']
+        task.completed = request.json['completed']
+        db.session.commit()
+        return
+    except:
+        return "There was an issue updating your task"
 
 if __name__ == '__main__':
     app.run(debug=True)
