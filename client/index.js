@@ -1,6 +1,18 @@
 // TODO: sorting by name function
 // TODO: sorting by date function
 
+// TODO: updating task function
+function updateTask() {
+    // reloads page
+    location.reload()
+}
+
+// TODO: deleting task function
+function deleteTask() {
+    // reloads page
+    location.reload()
+}
+
 // function for emptying tasks list
 function clearTaskList() {
     document.getElementById("tasks-list").innerHTML = "";
@@ -43,7 +55,7 @@ function drawTaskList(taskList) {
             const taskOptions = document.createElement("div");
             taskOptions.classList.add("task__options");
             // task edit button
-            const editButton = document.createElement("a");
+            const editButton = document.createElement("button");
             editButton.classList.add("task__button");
             editButton.classList.add("edit-btn");
             editButton.href = `http://localhost:5000/api/update/${task["id"]}`;
@@ -51,7 +63,7 @@ function drawTaskList(taskList) {
             editBtnImg.src = "./src/icons/edit-tools.png";
             editButton.appendChild(editBtnImg);
             //delete button
-            const deleteButton = document.createElement("a");
+            const deleteButton = document.createElement("button");
             deleteButton.classList.add("task__button");
             deleteButton.href = `http://localhost:5000/api/delete/${task["id"]}`;
             const deleteBtnImg = document.createElement("img");
@@ -114,8 +126,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    document.querySelectorAll("edit-btn").onclick = () => {
-        document.getElementById("task-update").style.display = "flex";
+    document.querySelectorAll(".edit-btn").forEach((button) => {
+        button.onclick = () => {
+            document.getElementById("task-update").style.display = "flex";
+        }
+    });
+
+    document.querySelectorAll(".delete-btn").forEach((button) => {
+        button.onclick = () => {
+            deleteTask();
+        }
+    })
+
+    document.getElementById("task-update__btn").onclick = () => {
+        updateTask();
     }
+
     console.log("Building something that's not sucks ✨");
 });
