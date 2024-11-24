@@ -23,7 +23,8 @@
 - HTML
 - CSS
 - JavaScript
-- JSON
+- Python
+- Flask
 
 ## Getting Started
 
