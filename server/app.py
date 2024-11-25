@@ -46,6 +46,7 @@ class Tasks(Resource):
         tasks = TaskModel.query.all()
         return tasks
 
+    # FIXME: date sets as null
     @marshal_with(taskFields)
     def post(self):
         args = tasks_args.parse_args()
