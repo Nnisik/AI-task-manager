@@ -16,57 +16,13 @@
       <button id="by-date-sort">Date</button>
     </div>
     <div class="tasks-list flex" id="tasks-list">
-
-      <div class="task flex">
-        <div class="task__info">
-          <h3 class="task__title">Task Name</h3>
-          <p class="task__text">Task Date</p>
-        </div>
-        <div class="task__options">
-          <button class="task__button edit-btn">
-            <img src="./src/icons/edit-tools.png" alt="">
-          </button>
-          <button class="task__button">
-            <img src="./src/icons/loschen.png" alt="">
-          </button>
-        </div>
-      </div>
-
-      <div class="task flex">
-        <div class="task__info">
-          <h3 class="task__title">Task Name</h3>
-          <p class="task__text">Task Date</p>
-        </div>
-        <div class="task__options">
-          <button class="task__button edit-btn">
-            <img src="./src/icons/edit-tools.png" alt="">
-          </button>
-          <button class="task__button">
-            <img src="./src/icons/loschen.png" alt="">
-          </button>
-        </div>
-      </div>
-
-      <div class="task flex">
-        <div class="task__info">
-          <h3 class="task__title">Task Name</h3>
-          <p class="task__text">Task Date</p>
-        </div>
-        <div class="task__options">
-          <button class="task__button edit-btn">
-            <img src="./src/icons/edit-tools.png" alt="">
-          </button>
-          <button class="task__button">
-            <img src="./src/icons/loschen.png" alt="">
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <button id="add-task-btn">+</button>
 
+  <!-- TODO: connect it to flask API -->
+  <!-- TODO: learn to make POST requests from JS -->
   <!-- add new task form -->
   <div id="add-task" class="modal">
     <div class="modal__content flex">
@@ -75,7 +31,7 @@
       <form class="new-task__form">
         <input type="text" name="content" id="new-task__form__content" placeholder="Type your future task">
       </form>
-      <button id="new-task__btn">Update</button>
+      <button id="new-task__btn">Create</button>
     </div>
   </div>
 
