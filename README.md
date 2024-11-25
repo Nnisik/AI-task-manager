@@ -43,6 +43,8 @@ To get a local copy of this project up and running, follow these steps:
   * setup WebPack
 * server folder
   * API for data manipulation
+     * put method
+     * delete method
   * changes to data storage
     * move to PostgreSQL from SQLite for data storage
     * modify task fields
