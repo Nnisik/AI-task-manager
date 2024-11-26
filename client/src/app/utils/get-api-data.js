@@ -1,3 +1,4 @@
+// Getting required functions
 import {tasks} from "../../app";
 
 // Fetches tasks from the API and returns them

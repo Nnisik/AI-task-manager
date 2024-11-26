@@ -1,3 +1,4 @@
+// Getting required functions
 import {drawTaskList} from './app/task-list';
 import {getTasks} from './app/utils/get-api-data';
 import {createNewTask} from './app/utils/post-api-data';

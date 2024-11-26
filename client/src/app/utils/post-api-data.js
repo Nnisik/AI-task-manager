@@ -1,3 +1,4 @@
+// Getting required functions
 import {clearTaskList} from "../clear-task-list";
 import {drawTaskList} from "../task-list";
 

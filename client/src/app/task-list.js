@@ -1,3 +1,4 @@
+// Getting required functions
 import {drawEmptyListMessage} from './empty-list-message';
 
 // Section containing task details (content and creation date)
