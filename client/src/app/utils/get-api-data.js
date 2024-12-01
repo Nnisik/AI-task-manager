@@ -21,3 +21,5 @@ export function getTasks() {
         console.error("Error fetching posts:", error);
     }
 }
+
+// TODO: finish setting up Wepack

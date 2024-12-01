@@ -2,3 +2,5 @@
 export default function clearTaskList() {
     document.getElementById("tasks-list").innerHTML = "";
 }
+
+// TODO: finish setting up Wepack

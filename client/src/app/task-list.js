@@ -90,3 +90,5 @@ export function drawTaskList(tasks) {
         document.querySelector("#tasks-list").append(taskContainer);
     });
 }
+
+// TODO: finish setting up Wepack

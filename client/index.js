@@ -191,3 +191,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Building something that's not sucks ✨");
 });
+
+// TODO: finish setting up Wepack

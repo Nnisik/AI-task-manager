@@ -1,4 +1,4 @@
 ./client/node_modules/
 ./client/index.js
-./client/src/app/
+/client/src/app/
 ./client/src/app.js

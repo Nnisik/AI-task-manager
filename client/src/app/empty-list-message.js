@@ -5,3 +5,5 @@ export default function drawEmptyListMessage() {
     emptyListMessage.innerText = "Looks like there is no tasks you need to do. Time to make plans for future.";
     document.querySelector("#tasks-list").appendChild(emptyListMessage);
 }
+
+// TODO: finish setting up Wepack
