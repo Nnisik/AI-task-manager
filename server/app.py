@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
@@ -29,8 +29,8 @@ class TaskModel(db.Model):
 
 # tasks arguments
 tasks_args = reqparse.RequestParser()
-tasks_args.add_argument("content", type=str, required=True)
-tasks_args.add_argument("date", type=str, required=True)
+tasks_args.add_argument("content", type=str, required=True, help="Content is required")
+tasks_args.add_argument("date", type=str, required=False)
 
 #api fields
 taskFields = {
@@ -49,8 +49,11 @@ class Tasks(Resource):
     # FIXME: date sets as null
     @marshal_with(taskFields)
     def post(self):
+        # parsing values from POST request
         args = tasks_args.parse_args()
-        date_value = datetime.strptime(args["date"], "%Y-%m-%d %H:%M:%S")
+        # formating date
+        date = datetime.now()
+        date_value = datetime.strptime(date)
         # FIXME: rename everywhere to "date"
         # FIXME: date value sets as "null"
         task = TaskModel(content = args["content"], data_created=date_value)
@@ -59,8 +62,29 @@ class Tasks(Resource):
         tasks = TaskModel.query.all()
         return tasks, 201
 
-    # TODO: update option
-    # TODO: delete option
+    # update request
+    @marshal_with(taskFields)
+    def put(self, task_id):
+        task = TaskModel.query.get_or_404(task_id)
+        # Check if 'content' or other fields are present in the request
+        if 'content' in request.json:
+            task.content = request.json['content']
+        # Commit changes to the database
+        db.session.commit()
+        # Return all tasks
+        tasks = TaskModel.query.all()
+        return tasks
+
+    # managing delete request
+    @marshal_with(taskFields)
+    def delete(self, task_id):
+        # Fetch the task by its ID or return a 404
+        task = TaskModel.query.get_or_404(task_id)
+        # Delete the task
+        db.session.delete(task)
+        db.session.commit()
+        # Return an empty response with a 204 status code
+        return '', 204
 
 #setting up API resource
 api.add_resource(Tasks, '/api/tasks/')
