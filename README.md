@@ -41,21 +41,16 @@ To get a local copy of this project up and running, follow these steps:
 ### Currently work on
 * client folder
   * setup WebPack
-* server folder
-  * API for data manipulation
-  * changes to data storage
-    * move to PostgreSQL from SQLite for data storage
-    * modify task fields
-      * remove "completed" field 
-      * change the way info in "data_created" is stored
-      * add grouping option
-      * add status field
 
 ### Future Improvements
+* changes to data storage
+  * modify task fields
+    * add grouping option
+    * add status field
 * integrate AI model, suggesting tasks
+  * add natural language processing for creating task
 * setup Docker
 * error handling
 * testing
 
 ### Known Issues
-* implement form validation for creating new task: currently allows to add empty task
