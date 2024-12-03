@@ -2,15 +2,15 @@
     --transition-duration: 0.3s;
     --background-color: rgb(230, 230, 230);
     --text-color: rgb(55, 55, 55);
-    --acsent-color: rgb(56, 98, 43);
-    --secondary-acsent-color: rgba(56, 98, 43, 0.5);
+    --accent-color: rgb(56, 98, 43);
+    --secondary-accent-color: rgba(56, 98, 43, 0.5);
 }
 
 * {
     margin: 0;
     padding: 0;
-    box-sizing: content-box;
-    font-family: "Helvetica", serif;
+    box-sizing: border-box;
+    font-family: "Helvetica", sans-serif;
 }
 
 html, body {
@@ -59,13 +59,13 @@ button {
         padding: 7px 15px;
         font-size: 0.7rem;
         letter-spacing: 2px;
-        background: var(--secondary-acsent-color);
+        background: var(--secondary-accent-color);
         color: var(--text-color);
         border-radius: 24px;
         transition-duration: var(--transition-duration);
 
         &:hover {
-            background: var(--acsent-color);
+            background: var(--accent-color);
             color: var(--background-color);
         }
     }
@@ -161,12 +161,12 @@ button {
     padding: 0.3rem 1rem;
     width: fit-content;
     border-radius: 6px;
-    background: var(--secondary-acsent-color);
+    background: var(--secondary-accent-color);
     color: var(--text-color);
     transition-duration: var(--transition-duration);
 
     &:hover {
-        background: var(--acsent-color);
+        background: var(--accent-color);
         color: var(--background-color);
     }
 }

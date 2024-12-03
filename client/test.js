@@ -47,7 +47,6 @@ function drawEditButton(id) {
 }
 
 // Delete button
-// TODO: Add id data property to use in delete function
 function drawDeleteButton(id) {
     const button = document.createElement("button");
     button.classList.add("task__button, delete-btn", " no-outline-no-borders");

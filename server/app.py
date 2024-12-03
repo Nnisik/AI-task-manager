@@ -5,7 +5,6 @@ from datetime import datetime
 from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
 
 # connection to database
-# TODO: transition SQLite database to PostgreSQL
 app = Flask(__name__)
 # allow check api work on localhost
 CORS(app)
@@ -16,7 +15,6 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 # new Task class
-# TODO: add more fields
 class TaskModel(db.Model):
     __tablename__ = 'task_model'
 
@@ -46,7 +44,6 @@ class TasksList(Resource):
         tasks = TaskModel.query.all()
         return tasks
 
-    # FIXME: date sets as null
     @marshal_with(taskFields)
     def post(self):
         # Parsing values from POST request
