@@ -194,13 +194,13 @@ button {
     height: 38px;
     aspect-ratio: 1/1;
     border-radius: 50%;
-    color: var(--secondary-acsent-color);
-    border: 1px solid var(--secondary-acsent-color);
+    color: var(--secondary-accent-color);
+    border: 1px solid var(--secondary-accent-color);
     transition: var(--transition-duration);
 
     &:hover {
-        background: var(--acsent-color);
+        background: var(--accent-color);
         color: var(--background-color);
-        border-color: var(--acsent-color);
+        border-color: var(--accent-color);
     }
 }

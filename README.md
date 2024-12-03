@@ -6,6 +6,8 @@
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
+This is a full-stack to-do list application designed to enhance task management with AI-driven features. Built using HTML, CSS and JavaScript for frontend and Flask, SQLAlchemy, and Flask-RESTful on project's server side. It allows users to create, update, delete, and retrieve tasks.
+
 ## Table of Contents
 - [Features](#features)
 - [Technologies Used](#technologies-used)
@@ -18,6 +20,10 @@
 - User-friendly layout
 - Attractive auction item display
 - Simple navigation
+- Smart Task Categorization
+- Priority Prediction
+- Database Integration
+- Intuitive User Interface
 
 ## Technologies Used
 - HTML
@@ -36,21 +42,28 @@ To get a local copy of this project up and running, follow these steps:
 2. **Navigate to the project directory:**
    ```bash
    cd AI-task-manager
-3. ...
+3. **Navigate to server folder:**
+   ```bash
+   cd server
+4. **Create a database:**
+   ```bash
+   python3 setup_db.py
 
 ### Currently work on
-* client folder
-  * setup WebPack
-
-### Future Improvements
 * changes to data storage
   * modify task fields
     * add grouping option
     * add status field
+  * filled table with more tasks
+
+### Future Improvements
+* client folder
+  * setup WebPack
 * integrate AI model, suggesting tasks
-  * add natural language processing for creating task
+  * smart task organizing using NPL
+  * priority prediction based on task description
 * setup Docker
-* error handling
-* testing
 
 ### Known Issues
+* when creating tasks, its date value sets as 'null'
+* 
