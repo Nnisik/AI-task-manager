@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
@@ -30,7 +30,7 @@ class TaskModel(db.Model):
 # tasks arguments
 tasks_args = reqparse.RequestParser()
 tasks_args.add_argument("content", type=str, required=True, help="Content is required")
-tasks_args.add_argument("date", type=str, required=False)
+tasks_args.add_argument("date", type=str, required=True)
 
 #api fields
 taskFields = {
@@ -40,7 +40,7 @@ taskFields = {
 }
 
 #tasks API
-class Tasks(Resource):
+class TasksList(Resource):
     @marshal_with(taskFields)
     def get(self):
         tasks = TaskModel.query.all()
@@ -49,19 +49,28 @@ class Tasks(Resource):
     # FIXME: date sets as null
     @marshal_with(taskFields)
     def post(self):
-        # parsing values from POST request
+        # Parsing values from POST request
         args = tasks_args.parse_args()
-        # formating date
-        date = datetime.now()
-        date_value = datetime.strptime(date)
-        # FIXME: rename everywhere to "date"
-        # FIXME: date value sets as "null"
-        task = TaskModel(content = args["content"], data_created=date_value)
-        db.session.add(task)
-        db.session.commit()
-        tasks = TaskModel.query.all()
-        return tasks, 201
 
+        try:
+            # Extracting and parsing the date
+            date_string = args["date"]  # Get the date from the parsed args
+            parsed_date = datetime.strptime(date_string, '%Y-%m-%d')  # Convert string to datetime
+
+            # Creating and adding the task to the database
+            task = TaskModel(content=args["content"], data_created=parsed_date)
+            db.session.add(task)
+            db.session.commit()
+
+            # Returning a success message
+            return jsonify({"message": "Task added successfully"}), 201
+
+        except ValueError as ve:
+            return jsonify({"error": f"Invalid date format: {str(ve)}"}), 400
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+class TasksListModify(Resource):
     # update request
     @marshal_with(taskFields)
     def put(self, task_id):
@@ -87,7 +96,8 @@ class Tasks(Resource):
         return '', 204
 
 #setting up API resource
-api.add_resource(Tasks, '/api/tasks/')
+api.add_resource(TasksList, '/api/tasks/')
+api.add_resource(TasksListModify, '/api/tasks/<int:task_id>')
 
 # main page
 @app.route('/')
