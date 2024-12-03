@@ -37,7 +37,7 @@ function drawTaskInfoSection(content, date) {
 // Edit button
 function drawEditButton(id) {
     const button = document.createElement("button");
-    button.classList.add("task__button", "edit-btn");
+    button.classList.add("task__button", "edit-btn", "no-outline-no-borders");
     button.setAttribute("data-id", id)
     const img = document.createElement("img");
     img.src = "./src/icons/edit-tools.png";
@@ -50,7 +50,7 @@ function drawEditButton(id) {
 // TODO: Add id data property to use in delete function
 function drawDeleteButton(id) {
     const button = document.createElement("button");
-    button.classList.add("task__button, delete-btn");
+    button.classList.add("task__button, delete-btn", " no-outline-no-borders");
     button.setAttribute("data-id", id)
     const img = document.createElement("img");
     img.src = "./src/icons/loschen.png";

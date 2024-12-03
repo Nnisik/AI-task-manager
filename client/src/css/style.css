@@ -24,8 +24,17 @@ body {
     background: var(--background-color);
 }
 
+button {
+    cursor: pointer;
+}
+
 .flex {
     display: flex;
+}
+
+.no-outline-no-borders {
+    border: none;
+    outline: none;
 }
 
 .container {
@@ -53,9 +62,6 @@ body {
         background: var(--secondary-acsent-color);
         color: var(--text-color);
         border-radius: 24px;
-        border: none;
-        outline: none;
-        cursor: pointer;
         transition-duration: var(--transition-duration);
 
         &:hover {
@@ -99,9 +105,6 @@ body {
 .task__button {
     height: fit-content;
     width: fit-content;
-    border: none;
-    outline: none;
-    cursor: pointer;
     background: transparent;
 }
 
@@ -158,9 +161,6 @@ body {
     padding: 0.3rem 1rem;
     width: fit-content;
     border-radius: 6px;
-    border: none;
-    outline: none;
-    cursor: pointer;
     background: var(--secondary-acsent-color);
     color: var(--text-color);
     transition-duration: var(--transition-duration);
@@ -176,7 +176,6 @@ body {
     position: relative;
     top: -15px;
     right: -250px;
-    border: none;
     background: transparent;
     font-size: 1rem;
     color: gray;
@@ -197,7 +196,6 @@ body {
     border-radius: 50%;
     color: var(--secondary-acsent-color);
     border: 1px solid var(--secondary-acsent-color);
-    cursor: pointer;
     transition: var(--transition-duration);
 
     &:hover {
