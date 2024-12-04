@@ -51,19 +51,15 @@ To get a local copy of this project up and running, follow these steps:
 
 ### Currently work on
 * changes to data storage
-  * modify task fields
-    * add grouping option
-    * add status field
   * filled table with more tasks
+* integrate AI model, suggesting tasks
+  * smart task organizing using NPL
+  * priority prediction based on task description
 
 ### Future Improvements
 * client folder
   * setup WebPack
-* integrate AI model, suggesting tasks
-  * smart task organizing using NPL
-  * priority prediction based on task description
 * setup Docker
 
 ### Known Issues
 * when creating tasks, its date value sets as 'null'
-* 
