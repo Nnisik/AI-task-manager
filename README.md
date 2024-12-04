@@ -48,11 +48,16 @@ To get a local copy of this project up and running, follow these steps:
 4. **Create a database instance:**
    ```bash
    python3 setup_db.py
+5. **Run flask server** using following command
+   ```bash
+   python3 app.py
+6. **Run index.html file** in local browser
 
 ### Currently work on
 * changes to data storage
+  * move to MySQL database
   * filled table with more tasks
-* integrate AI model, suggesting tasks
+* integrate AI modules
   * smart task organizing using NPL
   * priority prediction based on task description
 
@@ -60,6 +65,7 @@ To get a local copy of this project up and running, follow these steps:
 * client folder
   * setup WebPack
 * setup Docker
+* testing 
 
 ### Known Issues
 * when creating tasks, its date value sets as 'null'
