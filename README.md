@@ -45,7 +45,7 @@ To get a local copy of this project up and running, follow these steps:
 3. **Navigate to server folder:**
    ```bash
    cd server
-4. **Create a database:**
+4. **Create a database instance:**
    ```bash
    python3 setup_db.py
 

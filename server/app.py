@@ -2,7 +2,9 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
-from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
+from flask_restful import Resource, Api, reqparse, fields, marshal_with
+
+from server.ai.ai import categorize_task, predict_priority
 
 # connection to database
 app = Flask(__name__)
@@ -20,10 +22,13 @@ class TaskModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    data_created  = db.Column(db.DateTime, default=datetime.now)
+    date  = db.Column(db.DateTime, default=datetime.now)
+    group = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
+    priority = db.Column(db.String(20), nullable=False)
 
     def __repr__(self):
-        return f"Task(content={self.content}, data={self.data_created})"
+        return f"Task(content={self.content}, date={self.date}, group={self.group}, status={self.status}, priority={self.priority})"
 
 # tasks arguments
 tasks_args = reqparse.RequestParser()
@@ -37,7 +42,6 @@ taskFields = {
     'date':fields.DateTime
 }
 
-#tasks API
 class TasksList(Resource):
     @marshal_with(taskFields)
     def get(self):
@@ -54,8 +58,20 @@ class TasksList(Resource):
             date_string = args["date"]  # Get the date from the parsed args
             parsed_date = datetime.strptime(date_string, '%Y-%m-%d')  # Convert string to datetime
 
+            # Automatic group selection for task using AI
+            task_group = categorize_task(args["content"])
+
+            # Automatic selection of a priority status based on task
+            task_priority = predict_priority(args["content"])
+
             # Creating and adding the task to the database
-            task = TaskModel(content=args["content"], data_created=parsed_date)
+            task = TaskModel(
+                content=args['content'],
+                date=args['date'],
+                group=task_group,
+                status="not started",
+                priority=task_priority
+            )
             db.session.add(task)
             db.session.commit()
 
@@ -72,9 +88,16 @@ class TasksListModify(Resource):
     @marshal_with(taskFields)
     def put(self, task_id):
         task = TaskModel.query.get_or_404(task_id)
+
+        # Updating task content
         # Check if 'content' or other fields are present in the request
         if 'content' in request.json:
             task.content = request.json['content']
+
+        # Updating task status
+        if 'status' in request.json:
+            task.status = request.json['status']
+
         # Commit changes to the database
         db.session.commit()
         # Return all tasks
@@ -104,6 +127,4 @@ def index():
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-# !TODO: connect AI
 # !TODO: users
