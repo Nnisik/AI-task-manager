@@ -6,17 +6,62 @@
   <link rel="stylesheet" href="src/css/style.css">
   <script src="test.js"></script>
 </head>
-<body class="flex">
-
-  <div class="container">
-    <h1 class="header">To Do List</h1>
-    <!-- sorting buttons for tasks-->
-    <div class="task-list-controls flex">
-      <button class="no-outline-no-borders" id="by-name-sort">ABC</button>
-      <button class="no-outline-no-borders" id="by-date-sort">Date</button>
+<body>
+  <div class="app">
+    <div class="side-sections">
+      <div class="section">
+        <div class="section--header">Group</div>
+        <ul class="groups">
+          <li class="group-item" id="items-personal">Personal</li>
+          <li class="group-item" id="items-work">Work</li>
+        </ul>
+      </div>
     </div>
-    <div class="tasks-list flex" id="tasks-list">
-      <div></div>
+    <div class="container">
+      <h1 class="header">To Do List</h1>
+      <!-- sorting buttons for tasks-->
+      <div class="task-list-controls flex">
+        <button class="no-outline-no-borders" id="by-name-sort">ABC</button>
+        <button class="no-outline-no-borders" id="by-date-sort">Date</button>
+      </div>
+      <div class="flex" id="tasks-list">
+        <div class="task flex">
+          <div class="task__info">
+            <h3 class="task__title">Task #1</h3>
+            <div class="task__groups">
+              <div class="group">Personal</div>
+              <div class="group">Not started</div>
+            </div>
+            <p class="task__date">12/24</p>
+          </div>
+          <div class="task__options">
+            <button class="task__button edit-btn no-outline-no-borders" data-id=1>
+              <img class="task__icon" src="src/icons/edit-tools.png" alt="edit">
+            </button>
+            <button class="task__button delete-btn no-outline-no-borders" data-id=1>
+              <img class="task__icon" src="src/icons/loschen.png" alt="delete">
+            </button>
+          </div>
+        </div>
+        <div class="task flex">
+          <div class="task__info">
+            <h3 class="task__title">Task #2</h3>
+            <div class="task__groups">
+              <div class="group">Personal</div>
+              <div class="group">Not started</div>
+            </div>
+            <p class="task__date">12/24</p>
+          </div>
+          <div class="task__options">
+            <button class="task__button edit-btn no-outline-no-borders" data-id=2>
+              <img class="task__icon" src="src/icons/edit-tools.png" alt="edit">
+            </button>
+            <button class="task__button delete-btn no-outline-no-borders" data-id=2>
+              <img class="task__icon" src="src/icons/loschen.png" alt="delete">
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
