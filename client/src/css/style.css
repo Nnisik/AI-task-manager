@@ -2,7 +2,7 @@
     --transition-duration: 0.3s;
     --background-color: rgb(230, 230, 230);
     --text-color: rgb(55, 55, 55);
-    --accent-color: rgb(56, 98, 43);
+    --accent-color: rgba(56, 98, 43, 0.3);
     --secondary-accent-color: rgba(56, 98, 43, 0.5);
 }
 
@@ -28,6 +28,10 @@ button {
     cursor: pointer;
 }
 
+ul {
+    list-style: none;
+}
+
 .flex {
     display: flex;
 }
@@ -37,8 +41,53 @@ button {
     outline: none;
 }
 
+.app {
+    display: flex;
+}
+
+.side-sections {
+    width: 20%;
+    height: 100vh;
+    background: rgb(55, 55, 55, 0.15);
+    padding: 1rem;
+}
+
+.section {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--secondary-accent-color);
+}
+
+.section--header {
+    font-size: 2rem;
+    font-weight: bold;
+    width: fit-content;
+    margin: 0.5rem;
+}
+
+.groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.group-item {
+    background: rgb(230, 230, 230, 0.75);
+    padding: 6px 12px;
+    margin: 0 auto;
+    width: 85%;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    transition-duration: var(--transition-duration);
+
+    &:hover {
+        background: var(--background-color);
+        cursor: pointer;
+    }
+}
+
 .container {
-    width: 50%;
+    width: 60%;
+    margin: 1rem auto;
 }
 
 .header {
@@ -50,13 +99,12 @@ button {
 .task-list-controls {
     margin: 0 auto;
     padding: 0.5rem 1rem;
-    width: 90%;
+    width: 100%;
     justify-content: right;
     gap: 10px;
-    border-bottom: 1px solid grey;
 
     & button {
-        padding: 7px 15px;
+        padding: 5px 10px;
         font-size: 0.7rem;
         letter-spacing: 2px;
         background: var(--secondary-accent-color);
@@ -78,39 +126,74 @@ button {
     margin: 1rem 0;
 }
 
-.tasks-list {
-    width: fit-content;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 1rem ;
+#tasks-list {
     flex-direction: column;
+    align-items: center;
+    width: 95%;
     gap: 1rem;
+    margin: 0.5rem auto;
 }
 
 .task {
-    width: 500px;
-    height: fit-content;
+    flex-direction: row;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    border: 1px solid var(--text-color);
+    border-top: 1px solid rgba(55, 55, 55, 0.5);
+    border-bottom: 1px solid rgba(55, 55, 55, 0.5);
+    width: 100%;
+    transition-duration: var(--transition-duration);
+
+    &:hover {
+        border-top: 1px solid var(--text-color);
+        border-bottom: 1px solid var(--text-color);
+    }
+
+    &:hover .task__options {
+        opacity: 70%;
+    }
+}
+
+.task__info,
+.task__options {
+    margin: 0.25rem;
+}
+
+.task__groups {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin: 0.5rem 0 0.25rem 0.5rem;
+}
+
+.group {
+    background: rgba(56, 98, 43, 0.3);
+    padding: 0.2rem 0.7rem;
+    border-radius: 24px;
+    font-size: 0.8rem;
+    transition-duration: var(--transition-duration);
+
+    &:hover {
+        background: var(--accent-color);
+        color: var(--background-color);
+    }
+}
+
+.task__date {
+    color: var(--text-color);
+    margin: 0.5rem 0 0 1rem;
+    font-size: 0.8rem;
 }
 
 .task__options {
-    display: flex;
-    gap: 1rem;
+    opacity: 0;
 }
 
 .task__button {
-    height: fit-content;
-    width: fit-content;
-    background: transparent;
+    background: none;
 }
 
-.task__button img {
-    width: 20px;
-    aspect-ratio: 3/4;
+.task__icon {
+    width: 1.2rem;
+    aspect-ratio: 1/1;
 }
 
 .modal {
