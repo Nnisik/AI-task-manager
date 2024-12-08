@@ -25,7 +25,7 @@ class TaskModel(db.Model):
     date  = db.Column(db.DateTime, default=datetime.now)
     group = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(20), nullable=False)
-    priority = db.Column(db.String(20), nullable=False)
+    priority = db.Column(db.Integer)
 
     def __repr__(self):
         return f"Task(content={self.content}, date={self.date}, group={self.group}, status={self.status}, priority={self.priority})"
@@ -79,9 +79,9 @@ class TasksList(Resource):
             return jsonify({"message": "Task added successfully"}), 201
 
         except ValueError as ve:
-            return jsonify({"error": f"Invalid date format: {str(ve)}"}), 400
+            return {"error": f"Invalid date format: {str(ve)}"}, 400
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return {"error": str(e)}, 500
 
 class TasksListModify(Resource):
     # update request

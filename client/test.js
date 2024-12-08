@@ -2,6 +2,10 @@
 var tasks;
 var taskNeedToUpdate;
 
+// TODO: groups buttons
+// TODO: progress buttons
+// TODO: double tap on task to complete it
+
 // Clears the displayed task list by emptying the task list container
 function clearTaskList() {
     document.getElementById("tasks-list").innerHTML = "";
@@ -77,15 +81,16 @@ function drawTaskOptionsSection(id) {
 
 // Draws the list of tasks in the UI
 function drawTaskList(tasks){
-    // If the gallery element exists, append the posts
-    if (document.querySelector("#tasks-list")) return;
-
-    if (!tasks) {
-        drawEmptyListMessage() // Displays a message if no tasks are available
+    /*
+    clearTaskList(); // Ensure the task list is cleared before rendering
+    if (!tasks || tasks.length === 0) {
+        drawEmptyListMessage();
         return;
     }
+    */
 
     // Iterates over tasks and creates task elements
+    // FIXME: remake for new styling
     tasks.forEach((task) => {
         // Container for a single task
         const taskContainer = document.createElement("div");
@@ -104,19 +109,13 @@ function drawTaskList(tasks){
 }
 
 // Fetches tasks from the API and returns them
-function getTasks() {
+async function getTasks() {
     try {
-        // Fetch tasks from the server
-        fetch("http://127.0.0.1:5000/api/tasks/")
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then((json) => {
-                tasks = json; // Stores the retrieved tasks
-            })
+        const response = await fetch("http://127.0.0.1:5000/api/tasks/");
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        tasks = await response.json();
         return tasks;
     } catch (error) {
         // Logs errors during the fetch or processing
@@ -146,11 +145,11 @@ function createNewTask() {
         })
 }
 
-// TODO: test function
-function deleteTask(taskId) {
-    // Sending a POST request to the server with the new task's content and creation date
+function updateTaskList(taskId, method, body=null) {
+    // Sending a request to the server
     fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, {
-        method: "DELETE"
+        method: method,
+        body: body ? JSON.stringify(body) : null
     })
         .then((response) => response.json() // Parses the JSON response
         )
@@ -158,33 +157,38 @@ function deleteTask(taskId) {
             clearTaskList(); // Clears the current task list on the UI
             drawTaskList(json) // Redraws the task list with updated data
         })
+}
+
+// TODO: test function
+function deleteTask(taskId) {
+    updateTaskList(taskId, "DELETE");
 }
 
 // TODO: test function
 function updateTask(taskId) {
     let taskContent = document.getElementById("task-update__form__content").value;
-
-    // Sending a POST request to the server with the new task's content and creation date
-    fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, {
-        method: "PUT",
-        body: JSON.stringify({
-            content: taskContent
-        })
-    })
-        .then((response) => response.json() // Parses the JSON response
-        )
-        .then((json) => {
-            clearTaskList(); // Clears the current task list on the UI
-            drawTaskList(json) // Redraws the task list with updated data
-        })
+    updateTaskList(taskId, "PUT", {
+        content: taskContent
+    });
 }
 
 // TODO: sorting by name function
+function sortTasksByName(tasks) {
+    return tasks.sort((a, b) => {
+        a.content.localeCompare(b.content);
+    })
+}
+
 // TODO: sorting by date function
+function sortTasksByDate(tasks) {
+    return tasks.sort((a, b) => {
+        a.date.localeCompare(b.date);
+    })
+}
 
 // Initializes the application once the DOM is fully loaded
-document.addEventListener("DOMContentLoaded", () => {
-    getTasks(); // Fetches tasks
+document.addEventListener("DOMContentLoaded", async () => {
+    await getTasks(); // Fetches tasks
     drawTaskList(tasks); // Displays tasks on page load
 
     // Opens the "Add Task" modal
@@ -224,6 +228,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Updates a task when the update button is clicked
     document.getElementById("task-update__btn").onclick = () => {
         updateTask(taskNeedToUpdate);
+    }
+
+    document.getElementById("by-name-sort").onclick = () => {
+        sortTasksByName(tasks);
+        drawTaskList(tasks);
+    }
+
+    document.getElementById("by-date-sort").onclick = () => {
+        sortTasksByDate(tasks);
+        drawTaskList(tasks);
     }
 
     console.log("Building something that's not sucks ✨");

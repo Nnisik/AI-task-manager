@@ -58,7 +58,7 @@ ul {
 }
 
 .section--header {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: bold;
     width: fit-content;
     margin: 0.5rem;
@@ -68,6 +68,10 @@ ul {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.task-status {
+    outline: var(--accent-color) solid 1px;
 }
 
 .group-item {
@@ -157,11 +161,28 @@ ul {
     margin: 0.25rem;
 }
 
+.task__title {
+    width: fit-content;
+    position: relative;
+
+    &::before {
+        position: absolute;
+        content: "";
+        bottom: 50%;
+        right: -30%;
+        transform: translateY(50%);
+        width: 10px;
+        height: 10px;
+        background: var(--accent-color);
+        border-radius: 50%;
+    }
+}
+
 .task__groups {
     display: flex;
     flex-direction: row;
     gap: 1rem;
-    margin: 0.5rem 0 0.25rem 0.5rem;
+    margin: 0.5rem 0;
 }
 
 .group {

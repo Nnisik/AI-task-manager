@@ -55,15 +55,24 @@ To get a local copy of this project up and running, follow these steps:
 
 ### Currently work on
 * changes to data storage
-  * move to MySQL database
+  * move to MySQL/PostgreSQL database
   * filled table with more tasks
 * integrate AI modules
   * smart task organizing using NPL
+    * require testing
   * priority prediction based on task description
+    * require testing
+    * include machine learning
 
 ### Future Improvements
 * client folder
-  * setup WebPack
+  * rework index page layout
+    * add group and priority displaying on task
+    * restructure layout to add new buttons
+  * sort buttons
+    * sort by groups
+    * sort by priority
+* setup WebPack
 * setup Docker
 * testing 
 
