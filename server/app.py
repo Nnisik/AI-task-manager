@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-from datetime import datetime
 from flask_restful import Resource, Api, reqparse, fields, marshal_with
 
 from server.ai.ai import categorize_task, predict_priority
@@ -17,8 +16,24 @@ db_connection = DBConnect()
 
 
 def get_all_tasks():
-    return db_connection.get_all_tasks()
+    tasks_list = []
+    for task in db_connection.get_all_tasks():
+        task_date = task[2]
 
+        task_elem = {
+            "id": task[0],
+            "content": task[1],
+            "date": {
+                "year": task_date.year,
+                "month": task_date.month,
+                "day": task_date.day
+            },
+            "group": task[3],
+            "status": task[4],
+            "priority": task[5]
+        }
+        tasks_list.append(task_elem)
+    return tasks_list
 
 class Task():
     def __init__(self, content, date, group, status, priority):
@@ -49,30 +64,19 @@ tasks_args = reqparse.RequestParser()
 tasks_args.add_argument("content", type=str, required=True, help="Content is required")
 tasks_args.add_argument("date", type=str, required=True)
 
-#api fields
-taskFields = {
-    'id':fields.Integer,
-    'content':fields.String,
-    'date':fields.DateTime
-}
 
 class TasksList(Resource):
-    @marshal_with(taskFields)
-    def get(self):
+    @staticmethod
+    def get():
         tasks = get_all_tasks()
         return tasks
 
     # FIXME: rewrite to work
-    @marshal_with(taskFields)
     def post(self):
         # Parsing values from POST request
         args = tasks_args.parse_args()
 
         try:
-            # Extracting and parsing the date
-            date_string = args["date"]  # Get the date from the parsed args
-            parsed_date = datetime.strptime(date_string, '%Y-%m-%d')  # Convert string to datetime
-
             # Automatic group selection for task using AI
             task_group = categorize_task(args["content"])
 
@@ -97,6 +101,7 @@ class TasksList(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
 
+"""
 class TasksListModify(Resource):
     # update request
     # FIXME: rewrite to work
@@ -128,10 +133,11 @@ class TasksListModify(Resource):
         db.session.commit()
         # Return an empty response with a 204 status code
         return '', 204
+"""
 
 #setting up API resource
 api.add_resource(TasksList, '/api/tasks/')
-api.add_resource(TasksListModify, '/api/tasks/<int:task_id>')
+# api.add_resource(TasksListModify, '/api/tasks/<int:task_id>')
 
 # main page
 @app.route('/')

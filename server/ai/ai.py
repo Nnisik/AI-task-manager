@@ -1,9 +1,9 @@
 import re
 
 import openai
-from server import creds
+from server import credits
 
-openai.api_key = creds.api_key
+openai.api_key = credits.api_key
 
 # TODO: finish function and test
 def categorize_task(content):
