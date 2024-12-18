@@ -1,34 +1,48 @@
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
 from flask_restful import Resource, Api, reqparse, fields, marshal_with
 
 from server.ai.ai import categorize_task, predict_priority
+from server.db_connect import DBConnect
 
 # connection to database
 app = Flask(__name__)
 # allow check api work on localhost
 CORS(app)
-# creating a database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-db = SQLAlchemy(app)
+
+# Connect to the database
+# TODO: configuration file for project
+db_connection = DBConnect()
+
+
+def get_all_tasks():
+    return db_connection.get_all_tasks()
+
+
+class Task():
+    def __init__(self, content, date, group, status, priority):
+        self.content = content
+        self.date = date
+        self.group = group
+        self.status = status
+        self.priority = priority
+
+    def create_new_task(self):
+        db_connection.create_new_task(self.content, self.date, self.group, self.status, self.priority)
+
+    def modify_content(self, content):
+        db_connection.update_task_content(self.id, content)
+
+    def switch_status(self, new_status):
+        db_connection.update_task_status(self.id, new_status)
+
+    def switch_group(self, new_group):
+        db_connection.update_task_group(self.id, new_group)
+
+
 # api configuration
 api = Api(app)
-
-# new Task class
-class TaskModel(db.Model):
-    __tablename__ = 'task_model'
-
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(200), nullable=False)
-    date  = db.Column(db.DateTime, default=datetime.now)
-    group = db.Column(db.String(20), nullable=False)
-    status = db.Column(db.String(20), nullable=False)
-    priority = db.Column(db.Integer)
-
-    def __repr__(self):
-        return f"Task(content={self.content}, date={self.date}, group={self.group}, status={self.status}, priority={self.priority})"
 
 # tasks arguments
 tasks_args = reqparse.RequestParser()
@@ -45,9 +59,10 @@ taskFields = {
 class TasksList(Resource):
     @marshal_with(taskFields)
     def get(self):
-        tasks = TaskModel.query.all()
+        tasks = get_all_tasks()
         return tasks
 
+    # FIXME: rewrite to work
     @marshal_with(taskFields)
     def post(self):
         # Parsing values from POST request
@@ -65,15 +80,14 @@ class TasksList(Resource):
             task_priority = predict_priority(args["content"])
 
             # Creating and adding the task to the database
-            task = TaskModel(
+            task = Task(
                 content=args['content'],
                 date=args['date'],
                 group=task_group,
                 status="not started",
                 priority=task_priority
             )
-            db.session.add(task)
-            db.session.commit()
+            task.create_new_task()
 
             # Returning a success message
             return jsonify({"message": "Task added successfully"}), 201
@@ -85,10 +99,9 @@ class TasksList(Resource):
 
 class TasksListModify(Resource):
     # update request
+    # FIXME: rewrite to work
     @marshal_with(taskFields)
     def put(self, task_id):
-        task = TaskModel.query.get_or_404(task_id)
-
         # Updating task content
         # Check if 'content' or other fields are present in the request
         if 'content' in request.json:
@@ -104,6 +117,7 @@ class TasksListModify(Resource):
         tasks = TaskModel.query.all()
         return tasks
 
+    # FIXME: rewrite to work
     # managing delete request
     @marshal_with(taskFields)
     def delete(self, task_id):
