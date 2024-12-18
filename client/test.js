@@ -20,14 +20,20 @@ function drawEmptyListMessage() {
 }
 
 // Section containing task details (content and creation date)
-function drawTaskInfoSection(content, date) {
+function drawTaskInfoSection(content, status, group, priority, date) {
     const container = document.createElement("div");
     container.classList.add("task__info");
 
     // Task content (title)
+    // TODO: modify subclass style base on priority value
     const header = document.createElement("h3");
+    container.classList.add("task__title");
     header.innerText = content;
     container.appendChild(header);
+
+    // TODO: Grouping sections
+    const groupSection = drawTaskGroups(status, group);
+    container.appendChild(groupSection);
 
     // Task creation date
     // FIXME: Adjust date format to "day/month"
@@ -36,6 +42,26 @@ function drawTaskInfoSection(content, date) {
     container.appendChild(creationDate);
 
     return container;
+}
+
+function drawTaskGroups(status, group) {
+    const groupSection = document.createElement("div");
+    groupSection.classList.add("task__groups");
+
+    // group
+    const groupElement = document.createElement("p");
+    groupElement.classList.add("group");
+    groupElement.innerText = group;
+    groupSection.appendChild(groupElement);
+
+    // TODO: status
+    const statusElement = document.createElement("select");
+    statusElement.classList.add("group", "task-status");
+    // TODO: add options and option select
+    statusElement.innerText = status;
+    groupSection.appendChild(statusElement);
+
+    return groupSection;
 }
 
 // Edit button
