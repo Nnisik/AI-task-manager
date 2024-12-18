@@ -1,3 +1,4 @@
 ./client/node_modules/
 /server/credits.py
 /server/test.py
+/client/test.html

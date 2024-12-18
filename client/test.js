@@ -11,14 +11,6 @@ function clearTaskList() {
     document.getElementById("tasks-list").innerHTML = "";
 }
 
-// Displays a message indicating that there are no tasks
-function drawEmptyListMessage() {
-    const emptyListMessage = document.createElement("p");
-    emptyListMessage.classList.add("no-tasks-message");
-    emptyListMessage.innerText = "Looks like there is no tasks you need to do. Time to make plans for future.";
-    document.querySelector("#tasks-list").appendChild(emptyListMessage);
-}
-
 function capitalizeFirstLetter(val) {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
@@ -29,15 +21,17 @@ function drawTaskList(){
     fetch("http://127.0.0.1:5000/api/tasks/")
         .then(res => res.json())
         .then(tasks => {
-            // clearTaskList(); // Ensure the task list is cleared before rendering
+            clearTaskList(); // Ensure the task list is cleared before rendering
             if (!tasks) {
-                drawEmptyListMessage();
+                // Displays a message indicating that there are no tasks
+                const emptyListMessage = document.createElement("p");
+                emptyListMessage.classList.add("no-tasks-message");
+                emptyListMessage.innerText = "Looks like there is no tasks you need to do. Time to make plans for future.";
+                document.querySelector("#tasks-list").appendChild(emptyListMessage);
                 return;
             }
-            console.log(tasks);
 
             // Iterates over tasks and creates task elements
-            // FIXME: remake for new styling
             tasks.forEach((task) => {
                 // Container for a single task
                 const taskContainer = document.createElement("div");
@@ -113,7 +107,6 @@ function drawTaskList(){
 
 // Fetches tasks from the API and returns them
 function getTasks() {
-    // FIXME: test if it even goes for date
     fetch("http://127.0.0.1:5000/api/tasks/")
         .then(res => res.json())
         .then(data => {
