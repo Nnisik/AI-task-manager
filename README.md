@@ -54,9 +54,6 @@ To get a local copy of this project up and running, follow these steps:
 6. **Run index.html file** in local browser
 
 ### Currently work on
-* changes to data storage
-  * move to MySQL/PostgreSQL database
-  * filled table with more tasks
 * integrate AI modules
   * smart task organizing using NPL
     * require testing
