@@ -62,6 +62,7 @@ To get a local copy of this project up and running, follow these steps:
     * include machine learning
 
 ### Future Improvements
+* do a UPDATE and DELETE requests 
 * client folder
   * rework index page layout
     * add group and priority displaying on task
