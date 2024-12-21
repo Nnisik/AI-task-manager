@@ -60,9 +60,9 @@ To get a local copy of this project up and running, follow these steps:
   * priority prediction based on task description
     * require testing
     * include machine learning
-
+* do a UPDATE and DELETE requests
+  
 ### Future Improvements
-* do a UPDATE and DELETE requests 
 * client folder
   * rework index page layout
     * add group and priority displaying on task
@@ -72,7 +72,10 @@ To get a local copy of this project up and running, follow these steps:
     * sort by priority
 * setup WebPack
 * setup Docker
-* testing 
+* testing
+* Redis
+* Microesrvices
+* 
 
 ### Known Issues
 * when creating tasks, its date value sets as 'null'
