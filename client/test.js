@@ -1,10 +1,6 @@
 // Constants
-var tasks;
-var taskNeedToUpdate;
-
-// TODO: groups buttons
-// TODO: progress buttons
-// TODO: double tap on task to complete it
+let tasks;
+let taskNeedToUpdate;
 
 // Clears the displayed task list by emptying the task list container
 function clearTaskList() {
@@ -16,8 +12,7 @@ function capitalizeFirstLetter(val) {
 }
 
 // Draws the list of tasks in the UI
-function drawTaskList(){
-    let tasks;
+function drawTaskList() {
     fetch("http://127.0.0.1:5000/api/tasks/")
         .then(res => res.json())
         .then(tasks => {
@@ -86,6 +81,7 @@ function drawTaskList(){
                 editIcon.setAttribute("alt", "edit");
                 editButton.appendChild(editIcon);
                 taskOptionsContainer.appendChild(editButton);
+
                 // Delete button
                 const deleteButton = document.createElement("button");
                 deleteButton.classList.add("task__button", "delete-btn", "no-outline-no-border");
@@ -105,30 +101,15 @@ function drawTaskList(){
         .catch(err => console.log(err));
 }
 
-// Fetches tasks from the API and returns them
-function getTasks() {
-    fetch("http://127.0.0.1:5000/api/tasks/")
-        .then(res => res.json())
-        .then(data => {
-            return data;
-        })
-        .catch(err => console.log(err));
-}
-
 // Creates a new task and sends it to the server via a POST request
 function createNewTask() {
     let taskContent = document.getElementById("new-task__form__content").value;
-
-    // Getting and formatting the current date and time as "YYYY-MM-DD HH:MM:SS"
-    const now = new Date();
-    let formatedDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
 
     // Sending a POST request to the server with the new task's content and creation date
     fetch("http://127.0.0.1:5000/api/tasks/", {
         method: "POST",
         body: JSON.stringify({
             content: taskContent,
-            date: formatedDate
         })
     })
         .then((response) => response.json() // Parses the JSON response
@@ -153,12 +134,10 @@ function updateTaskList(taskId, method, body=null) {
         })
 }
 
-// TODO: test function
 function deleteTask(taskId) {
     updateTaskList(taskId, "DELETE");
 }
 
-// TODO: test function
 function updateTask(taskId) {
     let taskContent = document.getElementById("task-update__form__content").value;
     updateTaskList(taskId, "PUT", {
@@ -166,14 +145,12 @@ function updateTask(taskId) {
     });
 }
 
-// TODO: sorting by name function
 function sortTasksByName(tasks) {
     return tasks.sort((a, b) => {
         a.content.localeCompare(b.content);
     })
 }
 
-// TODO: sorting by date function
 function sortTasksByDate(tasks) {
     return tasks.sort((a, b) => {
         a.date.localeCompare(b.date);

@@ -54,27 +54,24 @@ To get a local copy of this project up and running, follow these steps:
 6. **Run index.html file** in local browser
 
 ### Currently work on
-* changes to data storage
-  * move to MySQL/PostgreSQL database
-  * filled table with more tasks
-* integrate AI modules
-  * smart task organizing using NPL
-    * require testing
-  * priority prediction based on task description
-    * require testing
-    * include machine learning
+* Group sorting
+* Priority sorting
+* Style modification
+  * Task animation when it is set as Done
+  * Change styling for priority indicator (small circle near the task title)
 
 ### Future Improvements
-* client folder
-  * rework index page layout
-    * add group and priority displaying on task
-    * restructure layout to add new buttons
-  * sort buttons
-    * sort by groups
-    * sort by priority
+* User authentification/authorization
+  * login/sign up page
+  * cookie files
+  * restructure database
+    * add userID column in task table
+    * user table
+  * user api
 * setup WebPack
 * setup Docker
 * testing 
+* double tap on task to complete it
 
 ### Known Issues
-* when creating tasks, its date value sets as 'null'
+* 

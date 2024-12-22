@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from datetime import date
+
+from flask import Flask, render_template, jsonify
 from flask_cors import CORS
-from flask_restful import Resource, Api, reqparse, fields, marshal_with
+from flask_restful import Resource, Api, reqparse
 
 from server.ai.ai import categorize_task, predict_priority
 from server.db_connect import DBConnect
@@ -11,7 +13,6 @@ app = Flask(__name__)
 CORS(app)
 
 # Connect to the database
-# TODO: configuration file for project
 db_connection = DBConnect()
 
 
@@ -36,7 +37,14 @@ def get_all_tasks():
     return tasks_list
 
 class Task():
-    def __init__(self, content, date, group, status, priority):
+    def __init__(self,
+                 id = None,
+                 content = None,
+                 date = None,
+                 group = None,
+                 status = None,
+                 priority = None):
+        self.id = id
         self.content = content
         self.date = date
         self.group = group
@@ -71,7 +79,6 @@ class TasksList(Resource):
         tasks = get_all_tasks()
         return tasks
 
-    # FIXME: rewrite to work
     def post(self):
         # Parsing values from POST request
         args = tasks_args.parse_args()
@@ -86,7 +93,7 @@ class TasksList(Resource):
             # Creating and adding the task to the database
             task = Task(
                 content=args['content'],
-                date=args['date'],
+                date=date.today(),
                 group=task_group,
                 status="not started",
                 priority=task_priority
@@ -101,43 +108,35 @@ class TasksList(Resource):
         except Exception as e:
             return {"error": str(e)}, 500
 
-"""
-class TasksListModify(Resource):
+
+class ModifyTasksList(Resource):
     # update request
-    # FIXME: rewrite to work
-    @marshal_with(taskFields)
     def put(self, task_id):
+        # Parsing values from POST request
+        args = tasks_args.parse_args()
+
         # Updating task content
         # Check if 'content' or other fields are present in the request
-        if 'content' in request.json:
-            task.content = request.json['content']
+        if 'content' in args:
+            DBConnect.update_task_content(task_id, args['content'])
 
         # Updating task status
-        if 'status' in request.json:
-            task.status = request.json['status']
+        if 'status' in args:
+            DBConnect.update_task_content(task_id, args['status'])
 
-        # Commit changes to the database
-        db.session.commit()
         # Return all tasks
-        tasks = TaskModel.query.all()
+        tasks = get_all_tasks()
         return tasks
 
-    # FIXME: rewrite to work
     # managing delete request
-    @marshal_with(taskFields)
     def delete(self, task_id):
-        # Fetch the task by its ID or return a 404
-        task = TaskModel.query.get_or_404(task_id)
-        # Delete the task
-        db.session.delete(task)
-        db.session.commit()
+        DBConnect.delete_task(task_id)
         # Return an empty response with a 204 status code
         return '', 204
-"""
 
 #setting up API resource
 api.add_resource(TasksList, '/api/tasks/')
-# api.add_resource(TasksListModify, '/api/tasks/<int:task_id>')
+api.add_resource(ModifyTasksList, '/api/tasks/<int:task_id>')
 
 # main page
 @app.route('/')
@@ -146,5 +145,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-# !TODO: users

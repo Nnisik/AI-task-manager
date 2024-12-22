@@ -20,7 +20,6 @@ class DBConnect:
             print(error)
             self.__close()
 
-
     def get_all_tasks(self):
         self.cur.execute("SELECT * FROM task")
         return self.cur.fetchall()
@@ -30,7 +29,6 @@ class DBConnect:
             "INSERT INTO task (task_content, date, task_group, task_status, priorty) VALUES (%s, %s, %s, %s, %s)",
             (content, date, group, status, priority))
         self.conn.commit()
-
 
     def update_task_content(self, id, content):
         self.cur.execute(
@@ -49,6 +47,12 @@ class DBConnect:
         self.cur.execute(
             "UPDATE task SET task_status = %s WHERE id = %s",
             (status, task_id))
+        self.conn.commit()
+
+    def delete_task(self, task_id):
+        self.cur.execute(
+            "DELETE FROM task WHERE id = %s",
+            (task_id,))
         self.conn.commit()
 
     def __close(self):

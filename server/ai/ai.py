@@ -5,7 +5,7 @@ from server import credits
 
 openai.api_key = credits.api_key
 
-# TODO: finish function and test
+# Task's group selection based on its content
 def categorize_task(content):
     try:
         # Using GPT to categorize the task
@@ -22,8 +22,7 @@ def categorize_task(content):
         print(f"Error: {e}")
         return "Other"
 
-# basic rule-based priority selector based on words from task content
-# TODO: include machine learning
+# Rule-based priority selector based on words from task content
 def predict_priority(task_content):
     PRIORITIES = {
         "high": 1,
