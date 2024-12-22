@@ -1,9 +1,14 @@
 import drawTaskList from "./js/ui";
-import {createNewTask, deleteTask, updateTask} from "./js/api";
+import {deleteTask, updateTask} from "./js/api";
 import {sortTasksByDate, sortTasksByName} from "./app/utils/sorting";
+import {addTask} from "./js/add-task";
 
-let tasks;
-let taskNeedToUpdate;
+import {TaskListService} from "./app/services/task-list.service";
+import showModal from "./app/utils/modal";
+
+// global constants
+export const taskList = new TaskListService();
+export let taskNeedToUpdate;
 
 // Initializes the application once the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -11,12 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Opens the "Add Task" modal
     document.getElementById("add-task-btn").addEventListener("click", () => {
-        document.getElementById("add-task").style.display = "flex";
+        showModal("add-task");
     });
 
     // Handles the "New Task" form submission
     document.getElementById("new-task__btn").onclick = () => {
-        createNewTask();
+        addTask()
     }
 
     // Closes modals when the close button is clicked
@@ -32,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".edit-btn").forEach((button) => {
         taskNeedToUpdate = button.getAttribute("data-id");
         button.onclick = () => {
-            document.getElementById("task-update").style.display = "flex";
+            showModal("task-update");
         }
     });
 
@@ -49,11 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById("by-name-sort").onclick = () => {
-        sortTasksByName(tasks);
+        sortTasksByName();
     }
 
     document.getElementById("by-date-sort").onclick = () => {
-        sortTasksByDate(tasks);
+        sortTasksByDate();
     }
 
     console.log("Building something that's not sucks ✨");

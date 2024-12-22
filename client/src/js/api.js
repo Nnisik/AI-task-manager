@@ -2,15 +2,25 @@
 // TODO: set up Webpack
 import drawTaskList, {clearTaskList} from "./ui";
 
-// Creates a new task and sends it to the server via a POST request
-export function createNewTask() {
-    let taskContent = document.getElementById("new-task__form__content").value;
+export function getTasks(taskList) {
+    fetch("http://127.0.0.1:5000/api/tasks/")
+        .then(res => res.json())
+        .then(tasks => {
+            tasks.forEach(task => {
+                taskList.addTask(task);
+            })
 
+            })
+        .catch(err => console.log(err));
+}
+
+// Creates a new task and sends it to the server via a POST request
+export function createNewTask(task) {
     // Sending a POST request to the server with the new task's content and creation date
     fetch("http://127.0.0.1:5000/api/tasks/", {
         method: "POST",
         body: JSON.stringify({
-            content: taskContent,
+            content: task.content,
         })
     })
         .then((response) => response.json() // Parses the JSON response
