@@ -4,7 +4,8 @@
 ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)</br>
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
-![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)</br>
+![Webpack](https://img.shields.io/badge/webpack-%238DD6F9.svg?style=for-the-badge&logo=webpack&logoColor=black)
 
 This is a full-stack to-do list application designed to enhance task management with AI-driven features. Built using HTML, CSS and JavaScript for frontend and Flask, SQLAlchemy, and Flask-RESTful on project's server side. It allows users to create, update, delete, and retrieve tasks.
 
@@ -56,6 +57,7 @@ To get a local copy of this project up and running, follow these steps:
 ### Currently work on
 * Style modification
   * Change styling for priority indicator (small circle near the task title)
+* Mobile layout
 
 ### Future Improvements
 * Users
@@ -67,7 +69,6 @@ To get a local copy of this project up and running, follow these steps:
     * user table
   * user api
     * rework task api
-* Mobile layout
 * Style modification
   * Task animation when it is set as Done
 * setup Docker
