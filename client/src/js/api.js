@@ -1,6 +1,6 @@
-// TODO: remove all api functions here
-// TODO: set up Webpack
 import drawTaskList, {clearTaskList} from "./ui";
+
+// TODO: connect to user API
 
 export function getTasks(taskList) {
     fetch("http://127.0.0.1:5000/api/tasks/")

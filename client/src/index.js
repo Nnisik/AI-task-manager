@@ -2,13 +2,16 @@ import drawTaskList from "./js/ui";
 import {deleteTask, updateTask} from "./js/api";
 import {sortTasksByDate, sortTasksByName} from "./app/utils/sorting";
 import {addTask} from "./js/add-task";
+import showModal from "./app/utils/modal";
 
 import {TaskListService} from "./app/services/task-list.service";
-import showModal from "./app/utils/modal";
 
 // global constants
 export const taskList = new TaskListService();
 export let taskNeedToUpdate;
+
+// TODO: window.onload
+// TODO: check for any currently logged users (COOKIES)
 
 // Initializes the application once the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {

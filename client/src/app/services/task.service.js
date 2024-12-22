@@ -7,6 +7,7 @@ export class TaskService {
     #priority;
     #date;
     #group;
+    // TODO: include userID property
 
     constructor(id, content, status, priority, date, group) {
         this.#id = id;
