@@ -54,8 +54,7 @@ To get a local copy of this project up and running, follow these steps:
 6. **Run index.html file** in local browser
 
 ### Currently work on
-* Group sorting
-* Priority sorting
+* move to class-services in JS
 * Style modification
   * Task animation when it is set as Done
   * Change styling for priority indicator (small circle near the task title)
@@ -68,7 +67,7 @@ To get a local copy of this project up and running, follow these steps:
     * add userID column in task table
     * user table
   * user api
-* setup WebPack
+* Mobile layout
 * setup Docker
 * testing 
 * double tap on task to complete it

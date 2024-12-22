@@ -24,7 +24,7 @@ class DBConnect:
         self.cur.execute("SELECT * FROM task")
         return self.cur.fetchall()
 
-    def create_new_task(self, content, date, group, status, priority):
+    def create_new_task(self, content, date, group, status, priority, userID):
         self.cur.execute(
             "INSERT INTO task (task_content, date, task_group, task_status, priorty) VALUES (%s, %s, %s, %s, %s)",
             (content, date, group, status, priority))

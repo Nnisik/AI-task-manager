@@ -1,18 +1,20 @@
 {
   "name": "client",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": "true",
+  "main": "src/index.js",
   "scripts": {
-    "build": "webpack build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "save-dev": "^0.0.1-security",
-    "webpack": "^5.96.1",
-    "webpack-cli": "^5.1.4"
-  }
+    "save-dev": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "description": ""
 }

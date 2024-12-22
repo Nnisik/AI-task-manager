@@ -229,22 +229,6 @@ const applyWebpackOptionsDefaults = (options, compilerIndex) => {
 		futureDefaults
 	});
 
-	applyModuleDefaults(options.module, {
-		cache,
-		syncWebAssembly:
-			/** @type {NonNullable<ExperimentsNormalized["syncWebAssembly"]>} */
-			(options.experiments.syncWebAssembly),
-		asyncWebAssembly:
-			/** @type {NonNullable<ExperimentsNormalized["asyncWebAssembly"]>} */
-			(options.experiments.asyncWebAssembly),
-		css:
-			/** @type {NonNullable<ExperimentsNormalized["css"]>} */
-			(options.experiments.css),
-		futureDefaults,
-		isNode: targetProperties && targetProperties.node === true,
-		targetProperties
-	});
-
 	applyOutputDefaults(options.output, {
 		context: /** @type {Context} */ (options.context),
 		targetProperties,
@@ -258,7 +242,27 @@ const applyWebpackOptionsDefaults = (options, compilerIndex) => {
 			(options.experiments.outputModule),
 		development,
 		entry: options.entry,
-		futureDefaults
+		futureDefaults,
+		asyncWebAssembly:
+			/** @type {NonNullable<ExperimentsNormalized["asyncWebAssembly"]>} */
+			(options.experiments.asyncWebAssembly)
+	});
+
+	applyModuleDefaults(options.module, {
+		cache,
+		syncWebAssembly:
+			/** @type {NonNullable<ExperimentsNormalized["syncWebAssembly"]>} */
+			(options.experiments.syncWebAssembly),
+		asyncWebAssembly:
+			/** @type {NonNullable<ExperimentsNormalized["asyncWebAssembly"]>} */
+			(options.experiments.asyncWebAssembly),
+		css:
+			/** @type {NonNullable<ExperimentsNormalized["css"]>} */
+			(options.experiments.css),
+		futureDefaults,
+		isNode: targetProperties && targetProperties.node === true,
+		uniqueName: options.output.uniqueName,
+		targetProperties
 	});
 
 	applyExternalsPresetsDefaults(options.externalsPresets, {
@@ -589,7 +593,7 @@ const applyCssGeneratorOptionsDefaults = (
 	D(
 		generatorOptions,
 		"exportsOnly",
-		!targetProperties || !targetProperties.document
+		!targetProperties || targetProperties.document === false
 	);
 	D(generatorOptions, "esModule", true);
 };
@@ -602,6 +606,7 @@ const applyCssGeneratorOptionsDefaults = (
  * @param {boolean} options.asyncWebAssembly is asyncWebAssembly enabled
  * @param {boolean} options.css is css enabled
  * @param {boolean} options.futureDefaults is future defaults enabled
+ * @param {string} options.uniqueName the unique name
  * @param {boolean} options.isNode is node target platform
  * @param {TargetProperties | false} options.targetProperties target properties
  * @returns {void}
@@ -615,6 +620,7 @@ const applyModuleDefaults = (
 		css,
 		futureDefaults,
 		isNode,
+		uniqueName,
 		targetProperties
 	}
 ) => {
@@ -670,6 +676,8 @@ const applyModuleDefaults = (
 	if (css) {
 		F(module.parser, CSS_MODULE_TYPE, () => ({}));
 
+		D(module.parser[CSS_MODULE_TYPE], "import", true);
+		D(module.parser[CSS_MODULE_TYPE], "url", true);
 		D(module.parser[CSS_MODULE_TYPE], "namedExports", true);
 
 		F(module.generator, CSS_MODULE_TYPE, () => ({}));
@@ -680,19 +688,18 @@ const applyModuleDefaults = (
 			{ targetProperties }
 		);
 
+		const localIdentName =
+			uniqueName.length > 0 ? "[uniqueName]-[id]-[local]" : "[id]-[local]";
+
 		F(module.generator, CSS_MODULE_TYPE_AUTO, () => ({}));
-		D(
-			module.generator[CSS_MODULE_TYPE_AUTO],
-			"localIdentName",
-			"[uniqueName]-[id]-[local]"
-		);
+		D(module.generator[CSS_MODULE_TYPE_AUTO], "localIdentName", localIdentName);
 		D(module.generator[CSS_MODULE_TYPE_AUTO], "exportsConvention", "as-is");
 
 		F(module.generator, CSS_MODULE_TYPE_MODULE, () => ({}));
 		D(
 			module.generator[CSS_MODULE_TYPE_MODULE],
 			"localIdentName",
-			"[uniqueName]-[id]-[local]"
+			localIdentName
 		);
 		D(module.generator[CSS_MODULE_TYPE_MODULE], "exportsConvention", "as-is");
 
@@ -700,7 +707,7 @@ const applyModuleDefaults = (
 		D(
 			module.generator[CSS_MODULE_TYPE_GLOBAL],
 			"localIdentName",
-			"[uniqueName]-[id]-[local]"
+			localIdentName
 		);
 		D(module.generator[CSS_MODULE_TYPE_GLOBAL], "exportsConvention", "as-is");
 	}
@@ -864,6 +871,7 @@ const applyModuleDefaults = (
  * @param {boolean} options.development is development mode
  * @param {Entry} options.entry entry option
  * @param {boolean} options.futureDefaults is future defaults enabled
+ * @param {boolean} options.asyncWebAssembly is asyncWebAssembly enabled
  * @returns {void}
  */
 const applyOutputDefaults = (
@@ -875,7 +883,8 @@ const applyOutputDefaults = (
 		outputModule,
 		development,
 		entry,
-		futureDefaults
+		futureDefaults,
+		asyncWebAssembly
 	}
 ) => {
 	/**
@@ -1063,7 +1072,6 @@ const applyOutputDefaults = (
 		}
 		return "[id].css";
 	});
-	D(output, "cssHeadDataCompression", !development);
 	D(output, "assetModuleFilename", "[hash][ext][query]");
 	D(output, "webassemblyModuleFilename", "[hash].module.wasm");
 	D(output, "compareBeforeEmit", true);
@@ -1130,10 +1138,12 @@ const applyOutputDefaults = (
 					break;
 			}
 			if (
-				tp.require === null ||
-				tp.nodeBuiltins === null ||
-				tp.document === null ||
-				tp.importScripts === null
+				(tp.require === null ||
+					tp.nodeBuiltins === null ||
+					tp.document === null ||
+					tp.importScripts === null) &&
+				output.module &&
+				environment.dynamicImport
 			) {
 				return "universal";
 			}
@@ -1155,9 +1165,11 @@ const applyOutputDefaults = (
 					break;
 			}
 			if (
-				tp.require === null ||
-				tp.nodeBuiltins === null ||
-				tp.importScriptsInWorker === null
+				(tp.require === null ||
+					tp.nodeBuiltins === null ||
+					tp.importScriptsInWorker === null) &&
+				output.module &&
+				environment.dynamicImport
 			) {
 				return "universal";
 			}
@@ -1167,9 +1179,13 @@ const applyOutputDefaults = (
 	F(output, "wasmLoading", () => {
 		if (tp) {
 			if (tp.fetchWasm) return "fetch";
-			if (tp.nodeBuiltins)
-				return output.module ? "async-node-module" : "async-node";
-			if (tp.nodeBuiltins === null || tp.fetchWasm === null) {
+			if (tp.nodeBuiltins) return "async-node";
+			if (
+				(tp.nodeBuiltins === null || tp.fetchWasm === null) &&
+				asyncWebAssembly &&
+				output.module &&
+				environment.dynamicImport
+			) {
 				return "universal";
 			}
 		}

@@ -111,12 +111,13 @@ class ModuleChunkLoadingRuntimeModule extends RuntimeModule {
 		);
 		const { linkPreload, linkPrefetch } =
 			ModuleChunkLoadingRuntimeModule.getCompilationHooks(compilation);
+		const isNeutralPlatform = runtimeTemplate.isNeutralPlatform();
 		const withPrefetch =
-			environment.document &&
+			(environment.document || isNeutralPlatform) &&
 			this._runtimeRequirements.has(RuntimeGlobals.prefetchChunkHandlers) &&
 			chunk.hasChildByOrder(chunkGraph, "prefetch", true, chunkHasJs);
 		const withPreload =
-			environment.document &&
+			(environment.document || isNeutralPlatform) &&
 			this._runtimeRequirements.has(RuntimeGlobals.preloadChunkHandlers) &&
 			chunk.hasChildByOrder(chunkGraph, "preload", true, chunkHasJs);
 		const conditionMap = chunkGraph.getChunkConditionMap(chunk, chunkHasJs);
@@ -161,29 +162,29 @@ class ModuleChunkLoadingRuntimeModule extends RuntimeModule {
 			withLoading || withExternalInstallChunk
 				? `var installChunk = ${runtimeTemplate.basicFunction("data", [
 						runtimeTemplate.destructureObject(
-							["ids", "modules", "runtime"],
+							["__webpack_ids__", "__webpack_modules__", "__webpack_runtime__"],
 							"data"
 						),
 						'// add "modules" to the modules object,',
 						'// then flag all "ids" as loaded and fire callback',
 						"var moduleId, chunkId, i = 0;",
-						"for(moduleId in modules) {",
+						"for(moduleId in __webpack_modules__) {",
 						Template.indent([
-							`if(${RuntimeGlobals.hasOwnProperty}(modules, moduleId)) {`,
+							`if(${RuntimeGlobals.hasOwnProperty}(__webpack_modules__, moduleId)) {`,
 							Template.indent(
-								`${RuntimeGlobals.moduleFactories}[moduleId] = modules[moduleId];`
+								`${RuntimeGlobals.moduleFactories}[moduleId] = __webpack_modules__[moduleId];`
 							),
 							"}"
 						]),
 						"}",
-						`if(runtime) runtime(${RuntimeGlobals.require});`,
-						"for(;i < ids.length; i++) {",
+						`if(__webpack_runtime__) __webpack_runtime__(${RuntimeGlobals.require});`,
+						"for(;i < __webpack_ids__.length; i++) {",
 						Template.indent([
-							"chunkId = ids[i];",
+							"chunkId = __webpack_ids__[i];",
 							`if(${RuntimeGlobals.hasOwnProperty}(installedChunks, chunkId) && installedChunks[chunkId]) {`,
 							Template.indent("installedChunks[chunkId][0]();"),
 							"}",
-							"installedChunks[ids[i]] = 0;"
+							"installedChunks[__webpack_ids__[i]] = 0;"
 						]),
 						"}",
 						withOnChunkLoad ? `${RuntimeGlobals.onChunksLoaded}();` : ""
@@ -254,6 +255,9 @@ class ModuleChunkLoadingRuntimeModule extends RuntimeModule {
 						}) {`,
 						Template.indent([
 							"installedChunks[chunkId] = null;",
+							isNeutralPlatform
+								? "if (typeof document === 'undefined') return;"
+								: "",
 							linkPrefetch.call(
 								Template.asString([
 									"var link = document.createElement('link');",
@@ -290,6 +294,9 @@ class ModuleChunkLoadingRuntimeModule extends RuntimeModule {
 						}) {`,
 						Template.indent([
 							"installedChunks[chunkId] = null;",
+							isNeutralPlatform
+								? "if (typeof document === 'undefined') return;"
+								: "",
 							linkPreload.call(
 								Template.asString([
 									"var link = document.createElement('link');",

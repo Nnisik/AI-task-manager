@@ -13,7 +13,9 @@ const Parser = require("../Parser");
 const UnsupportedFeatureWarning = require("../UnsupportedFeatureWarning");
 const WebpackError = require("../WebpackError");
 const ConstDependency = require("../dependencies/ConstDependency");
-const CssExportDependency = require("../dependencies/CssExportDependency");
+const CssIcssExportDependency = require("../dependencies/CssIcssExportDependency");
+const CssIcssImportDependency = require("../dependencies/CssIcssImportDependency");
+const CssIcssSymbolDependency = require("../dependencies/CssIcssSymbolDependency");
 const CssImportDependency = require("../dependencies/CssImportDependency");
 const CssLocalIdentifierDependency = require("../dependencies/CssLocalIdentifierDependency");
 const CssSelfLocalIdentifierDependency = require("../dependencies/CssSelfLocalIdentifierDependency");
@@ -31,17 +33,18 @@ const walkCssTokens = require("./walkCssTokens");
 /** @typedef {import("../Module").BuildMeta} BuildMeta */
 /** @typedef {import("../Parser").ParserState} ParserState */
 /** @typedef {import("../Parser").PreparsedAst} PreparsedAst */
+/** @typedef {import("./walkCssTokens").CssTokenCallbacks} CssTokenCallbacks */
 
 /** @typedef {[number, number]} Range */
 /** @typedef {{ line: number, column: number }} Position */
 /** @typedef {{ value: string, range: Range, loc: { start: Position, end: Position } }} Comment */
 
-const CC_LEFT_CURLY = "{".charCodeAt(0);
-const CC_RIGHT_CURLY = "}".charCodeAt(0);
 const CC_COLON = ":".charCodeAt(0);
 const CC_SLASH = "/".charCodeAt(0);
-const CC_SEMICOLON = ";".charCodeAt(0);
 const CC_LEFT_PARENTHESIS = "(".charCodeAt(0);
+const CC_RIGHT_PARENTHESIS = ")".charCodeAt(0);
+const CC_LOWER_F = "f".charCodeAt(0);
+const CC_UPPER_F = "F".charCodeAt(0);
 
 // https://www.w3.org/TR/css-syntax-3/#newline
 // We don't have `preprocessing` stage, so we need specify all of them
@@ -54,6 +57,7 @@ const OPTIONALLY_VENDOR_PREFIXED_KEYFRAMES_AT_RULE = /^@(-\w+-)?keyframes$/;
 const OPTIONALLY_VENDOR_PREFIXED_ANIMATION_PROPERTY =
 	/^(-\w+-)?animation(-name)?$/i;
 const IS_MODULES = /\.module(s)?\.[^.]+$/i;
+const CSS_COMMENT = /\/\*((?!\*\/).*?)\*\//g;
 
 /**
  * @param {string} str url string
@@ -93,6 +97,136 @@ const normalizeUrl = (str, isString) => {
 	}
 
 	return str;
+};
+
+// eslint-disable-next-line no-useless-escape
+const regexSingleEscape = /[ -,.\/:-@[\]\^`{-~]/;
+const regexExcessiveSpaces =
+	/(^|\\+)?(\\[A-F0-9]{1,6})\u0020(?![a-fA-F0-9\u0020])/g;
+
+/**
+ * @param {string} str string
+ * @returns {string} escaped identifier
+ */
+const escapeIdentifier = str => {
+	let output = "";
+	let counter = 0;
+
+	while (counter < str.length) {
+		const character = str.charAt(counter++);
+
+		let value;
+
+		if (/[\t\n\f\r\u000B]/.test(character)) {
+			const codePoint = character.charCodeAt(0);
+
+			value = `\\${codePoint.toString(16).toUpperCase()} `;
+		} else if (character === "\\" || regexSingleEscape.test(character)) {
+			value = `\\${character}`;
+		} else {
+			value = character;
+		}
+
+		output += value;
+	}
+
+	const firstChar = str.charAt(0);
+
+	if (/^-[-\d]/.test(output)) {
+		output = `\\-${output.slice(1)}`;
+	} else if (/\d/.test(firstChar)) {
+		output = `\\3${firstChar} ${output.slice(1)}`;
+	}
+
+	// Remove spaces after `\HEX` escapes that are not followed by a hex digit,
+	// since they’re redundant. Note that this is only possible if the escape
+	// sequence isn’t preceded by an odd number of backslashes.
+	output = output.replace(regexExcessiveSpaces, ($0, $1, $2) => {
+		if ($1 && $1.length % 2) {
+			// It’s not safe to remove the space, so don’t.
+			return $0;
+		}
+
+		// Strip the space.
+		return ($1 || "") + $2;
+	});
+
+	return output;
+};
+
+const CONTAINS_ESCAPE = /\\/;
+
+/**
+ * @param {string} str string
+ * @returns {[string, number] | undefined} hex
+ */
+const gobbleHex = str => {
+	const lower = str.toLowerCase();
+	let hex = "";
+	let spaceTerminated = false;
+
+	for (let i = 0; i < 6 && lower[i] !== undefined; i++) {
+		const code = lower.charCodeAt(i);
+		// check to see if we are dealing with a valid hex char [a-f|0-9]
+		const valid = (code >= 97 && code <= 102) || (code >= 48 && code <= 57);
+		// https://drafts.csswg.org/css-syntax/#consume-escaped-code-point
+		spaceTerminated = code === 32;
+		if (!valid) break;
+		hex += lower[i];
+	}
+
+	if (hex.length === 0) return undefined;
+
+	const codePoint = Number.parseInt(hex, 16);
+	const isSurrogate = codePoint >= 0xd800 && codePoint <= 0xdfff;
+
+	// Add special case for
+	// "If this number is zero, or is for a surrogate, or is greater than the maximum allowed code point"
+	// https://drafts.csswg.org/css-syntax/#maximum-allowed-code-point
+	if (isSurrogate || codePoint === 0x0000 || codePoint > 0x10ffff) {
+		return ["\uFFFD", hex.length + (spaceTerminated ? 1 : 0)];
+	}
+
+	return [
+		String.fromCodePoint(codePoint),
+		hex.length + (spaceTerminated ? 1 : 0)
+	];
+};
+
+/**
+ * @param {string} str string
+ * @returns {string} unescaped string
+ */
+const unescapeIdentifier = str => {
+	const needToProcess = CONTAINS_ESCAPE.test(str);
+	if (!needToProcess) return str;
+	let ret = "";
+	for (let i = 0; i < str.length; i++) {
+		if (str[i] === "\\") {
+			const gobbled = gobbleHex(str.slice(i + 1, i + 7));
+			if (gobbled !== undefined) {
+				ret += gobbled[0];
+				i += gobbled[1];
+				continue;
+			}
+			// Retain a pair of \\ if double escaped `\\\\`
+			// https://github.com/postcss/postcss-selector-parser/commit/268c9a7656fb53f543dc620aa5b73a30ec3ff20e
+			if (str[i + 1] === "\\") {
+				ret += "\\";
+				i += 1;
+				continue;
+			}
+			// if \\ is at the end of the string retain it
+			// https://github.com/postcss/postcss-selector-parser/commit/01a6b346e3612ce1ab20219acc26abdc259ccefb
+			if (str.length === i + 1) {
+				ret += str[i];
+			}
+			continue;
+		}
+		ret += str[i];
+	}
+
+	return ret;
 };
 
 class LocConverter {
@@ -145,15 +279,28 @@ const EMPTY_COMMENT_OPTIONS = {
 const CSS_MODE_TOP_LEVEL = 0;
 const CSS_MODE_IN_BLOCK = 1;
 
+const eatUntilSemi = walkCssTokens.eatUntil(";");
+const eatUntilLeftCurly = walkCssTokens.eatUntil("{");
+const eatSemi = walkCssTokens.eatUntil(";");
+
 class CssParser extends Parser {
 	/**
 	 * @param {object} options options
+	 * @param {boolean=} options.importOption need handle `@import`
+	 * @param {boolean=} options.url need handle URLs
 	 * @param {("pure" | "global" | "local" | "auto")=} options.defaultMode default mode
 	 * @param {boolean=} options.namedExports is named exports
 	 */
-	constructor({ defaultMode = "pure", namedExports = true } = {}) {
+	constructor({
+		defaultMode = "pure",
+		importOption = true,
+		url = true,
+		namedExports = true
+	} = {}) {
 		super();
 		this.defaultMode = defaultMode;
+		this.import = importOption;
+		this.url = url;
 		this.namedExports = namedExports;
 		/** @type {Comment[] | undefined} */
 		this.comments = undefined;
@@ -228,10 +375,12 @@ class CssParser extends Parser {
 		let modeData;
 		/** @type {boolean} */
 		let inAnimationProperty = false;
-		/** @type {Set<string>} */
-		const declaredCssVariables = new Set();
 		/** @type {[number, number, boolean] | undefined} */
 		let lastIdentifier;
+		/** @type {Set<string>} */
+		const declaredCssVariables = new Set();
+		/** @type {Map<string, { path?: string, value: string }>} */
+		const icssDefinitions = new Map();
 
 		/**
 		 * @param {string} input input
@@ -289,78 +438,156 @@ class CssParser extends Parser {
 			}
 			return [pos, text.trimEnd()];
 		};
-		const eatExportName = walkCssTokens.eatUntil(":};/");
-		const eatExportValue = walkCssTokens.eatUntil("};/");
+
 		/**
+		 * @param {0 | 1} type import or export
 		 * @param {string} input input
 		 * @param {number} pos start position
 		 * @returns {number} position after parse
 		 */
-		const parseExports = (input, pos) => {
+		const parseImportOrExport = (type, input, pos) => {
 			pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
-			const cc = input.charCodeAt(pos);
-			if (cc !== CC_LEFT_CURLY) {
-				this._emitWarning(
-					state,
-					`Unexpected '${input[pos]}' at ${pos} during parsing of ':export' (expected '{')`,
-					locConverter,
-					pos,
-					pos
-				);
-				return pos;
-			}
-			pos++;
-			pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
-			for (;;) {
-				if (input.charCodeAt(pos) === CC_RIGHT_CURLY) break;
-				pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
-				if (pos === input.length) return pos;
-				const start = pos;
-				let name;
-				[pos, name] = eatText(input, pos, eatExportName);
-				if (pos === input.length) return pos;
-				if (input.charCodeAt(pos) !== CC_COLON) {
+			let importPath;
+			if (type === 0) {
+				let cc = input.charCodeAt(pos);
+				if (cc !== CC_LEFT_PARENTHESIS) {
 					this._emitWarning(
 						state,
-						`Unexpected '${input[pos]}' at ${pos} during parsing of export name in ':export' (expected ':')`,
+						`Unexpected '${input[pos]}' at ${pos} during parsing of ':import' (expected '(')`,
 						locConverter,
-						start,
+						pos,
 						pos
 					);
 					return pos;
 				}
 				pos++;
-				if (pos === input.length) return pos;
-				pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
-				if (pos === input.length) return pos;
-				let value;
-				[pos, value] = eatText(input, pos, eatExportValue);
-				if (pos === input.length) return pos;
-				const cc = input.charCodeAt(pos);
-				if (cc === CC_SEMICOLON) {
-					pos++;
-					if (pos === input.length) return pos;
-					pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
-					if (pos === input.length) return pos;
-				} else if (cc !== CC_RIGHT_CURLY) {
+				const stringStart = pos;
+				const str = walkCssTokens.eatString(input, pos);
+				if (!str) {
 					this._emitWarning(
 						state,
-						`Unexpected '${input[pos]}' at ${pos} during parsing of export value in ':export' (expected ';' or '}')`,
+						`Unexpected '${input[pos]}' at ${pos} during parsing of ':import' (expected string)`,
 						locConverter,
-						start,
+						stringStart,
 						pos
 					);
 					return pos;
 				}
-				const dep = new CssExportDependency(name, value);
-				const { line: sl, column: sc } = locConverter.get(start);
-				const { line: el, column: ec } = locConverter.get(pos);
-				dep.setLoc(sl, sc, el, ec);
-				module.addDependency(dep);
+				importPath = input.slice(str[0] + 1, str[1] - 1);
+				pos = str[1];
+				pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
+				cc = input.charCodeAt(pos);
+				if (cc !== CC_RIGHT_PARENTHESIS) {
+					this._emitWarning(
+						state,
+						`Unexpected '${input[pos]}' at ${pos} during parsing of ':import' (expected ')')`,
+						locConverter,
+						pos,
+						pos
+					);
+					return pos;
+				}
+				pos++;
+				pos = walkCssTokens.eatWhitespaceAndComments(input, pos);
 			}
-			pos++;
-			if (pos === input.length) return pos;
+
+			/**
+			 * @param {string} name name
+			 * @param {string} value value
+			 * @param {number} start start of position
+			 * @param {number} end end of position
+			 */
+			const createDep = (name, value, start, end) => {
+				if (type === 0) {
+					icssDefinitions.set(name, {
+						path: /** @type {string} */ (importPath),
+						value
+					});
+				} else if (type === 1) {
+					const dep = new CssIcssExportDependency(name, value);
+					const { line: sl, column: sc } = locConverter.get(start);
+					const { line: el, column: ec } = locConverter.get(end);
+					dep.setLoc(sl, sc, el, ec);
+					module.addDependency(dep);
+				}
+			};
+
+			let needTerminate = false;
+			let balanced = 0;
+			/** @type {undefined | 0 | 1 | 2} */
+			let scope;
+
+			/** @type {[number, number] | undefined} */
+			let name;
+			/** @type {number | undefined} */
+			let value;
+
+			/** @type {CssTokenCallbacks} */
+			const callbacks = {
+				leftCurlyBracket: (_input, _start, end) => {
+					balanced++;
+
+					if (scope === undefined) {
+						scope = 0;
+					}
+
+					return end;
+				},
+				rightCurlyBracket: (_input, _start, end) => {
+					balanced--;
+
+					if (scope === 2) {
+						createDep(
+							input.slice(name[0], name[1]),
+							input.slice(value, end - 1).trim(),
+							name[1],
+							end - 1
+						);
+						scope = 0;
+					}
+
+					if (balanced === 0 && scope === 0) {
+						needTerminate = true;
+					}
+
+					return end;
+				},
+				identifier: (_input, start, end) => {
+					if (scope === 0) {
+						name = [start, end];
+						scope = 1;
+					}
+
+					return end;
+				},
+				colon: (_input, _start, end) => {
+					if (scope === 1) {
+						scope = 2;
+						value = walkCssTokens.eatWhitespace(input, end);
+						return value;
+					}
+
+					return end;
+				},
+				semicolon: (input, _start, end) => {
+					if (scope === 2) {
+						createDep(
+							input.slice(name[0], name[1]),
+							input.slice(value, end - 1),
+							name[1],
+							end - 1
+						);
+						scope = 0;
+					}
+
+					return end;
+				},
+				needTerminate: () => needTerminate
+			};
+
+			pos = walkCssTokens(input, pos, callbacks);
 			pos = walkCssTokens.eatWhiteLine(input, pos);
+
 			return pos;
 		};
 		const eatPropertyName = walkCssTokens.eatUntil(":{};");
@@ -381,11 +608,11 @@ class CssParser extends Parser {
 			);
 			if (input.charCodeAt(propertyNameEnd) !== CC_COLON) return end;
 			pos = propertyNameEnd + 1;
-			if (propertyName.startsWith("--")) {
+			if (propertyName.startsWith("--") && propertyName.length >= 3) {
 				// CSS Variable
 				const { line: sl, column: sc } = locConverter.get(propertyNameStart);
 				const { line: el, column: ec } = locConverter.get(propertyNameEnd);
-				const name = propertyName.slice(2);
+				const name = unescapeIdentifier(propertyName.slice(2));
 				const dep = new CssLocalIdentifierDependency(
 					name,
 					[propertyNameStart, propertyNameEnd],
@@ -408,9 +635,11 @@ class CssParser extends Parser {
 			if (inAnimationProperty && lastIdentifier) {
 				const { line: sl, column: sc } = locConverter.get(lastIdentifier[0]);
 				const { line: el, column: ec } = locConverter.get(lastIdentifier[1]);
-				const name = lastIdentifier[2]
-					? input.slice(lastIdentifier[0], lastIdentifier[1])
-					: input.slice(lastIdentifier[0] + 1, lastIdentifier[1] - 1);
+				const name = unescapeIdentifier(
+					lastIdentifier[2]
+						? input.slice(lastIdentifier[0], lastIdentifier[1])
+						: input.slice(lastIdentifier[0] + 1, lastIdentifier[1] - 1)
+				);
 				const dep = new CssSelfLocalIdentifierDependency(name, [
 					lastIdentifier[0],
 					lastIdentifier[1]
@@ -420,9 +649,6 @@ class CssParser extends Parser {
 				lastIdentifier = undefined;
 			}
 		};
-
-		const eatUntilSemi = walkCssTokens.eatUntil(";");
-		const eatUntilLeftCurly = walkCssTokens.eatUntil("{");
 
 		/**
 		 * @param {string} input input
@@ -448,7 +674,7 @@ class CssParser extends Parser {
 			return end;
 		};
 
-		walkCssTokens(source, {
+		walkCssTokens(source, 0, {
 			comment,
 			leftCurlyBracket: (input, start, end) => {
 				switch (scope) {
@@ -497,6 +723,10 @@ class CssParser extends Parser {
 				return end;
 			},
 			url: (input, start, end, contentStart, contentEnd) => {
+				if (!this.url) {
+					return end;
+				}
+
 				const { options, errors: commentErrors } = this.parseCommentOptions([
 					lastTokenEndForComments,
 					end
@@ -572,6 +802,10 @@ class CssParser extends Parser {
 						return eatUntilSemi(input, start);
 					}
 					case "@import": {
+						if (!this.import) {
+							return eatSemi(input, end);
+						}
+
 						if (!allowImportAtRule) {
 							this._emitWarning(
 								state,
@@ -687,48 +921,129 @@ class CssParser extends Parser {
 					}
 					default: {
 						if (isModules) {
-							if (OPTIONALLY_VENDOR_PREFIXED_KEYFRAMES_AT_RULE.test(name)) {
+							if (name === "@value") {
+								const semi = eatUntilSemi(input, end);
+								const atRuleEnd = semi + 1;
+								const params = input.slice(end, semi);
+								let [alias, from] = params.split(/\s*from\s*/);
+
+								if (from) {
+									const aliases = alias
+										.replace(CSS_COMMENT, " ")
+										.trim()
+										.replace(/^\(|\)$/g, "")
+										.split(/\s*,\s*/);
+
+									from = from.replace(CSS_COMMENT, "").trim();
+
+									const isExplicitImport = from[0] === "'" || from[0] === '"';
+
+									if (isExplicitImport) {
+										from = from.slice(1, -1);
+									}
+
+									for (const alias of aliases) {
+										const [name, aliasName] = alias.split(/\s*as\s*/);
+
+										icssDefinitions.set(aliasName || name, {
+											value: name,
+											path: from
+										});
+									}
+								} else {
+									const ident = walkCssTokens.eatIdentSequence(alias, 0);
+
+									if (!ident) {
+										this._emitWarning(
+											state,
+											`Broken '@value' at-rule: ${input.slice(
+												start,
+												atRuleEnd
+											)}'`,
+											locConverter,
+											start,
+											atRuleEnd
+										);
+
+										const dep = new ConstDependency("", [start, atRuleEnd]);
+										module.addPresentationalDependency(dep);
+										return atRuleEnd;
+									}
+
+									const pos = walkCssTokens.eatWhitespaceAndComments(
+										alias,
+										ident[1]
+									);
+
+									const name = alias.slice(ident[0], ident[1]);
+									let value =
+										alias.charCodeAt(pos) === CC_COLON
+											? alias.slice(pos + 1)
+											: alias.slice(ident[1]);
+
+									if (value && !/^\s+$/.test(value)) {
+										value = value.trim();
+									}
+
+									if (icssDefinitions.has(value)) {
+										const def = icssDefinitions.get(value);
+
+										value = def.value;
+									}
+
+									icssDefinitions.set(name, { value });
+
+									const dep = new CssIcssExportDependency(name, value);
+									const { line: sl, column: sc } = locConverter.get(start);
+									const { line: el, column: ec } = locConverter.get(end);
+									dep.setLoc(sl, sc, el, ec);
+									module.addDependency(dep);
+								}
+
+								const dep = new ConstDependency("", [start, atRuleEnd]);
+								module.addPresentationalDependency(dep);
+								return atRuleEnd;
+							} else if (
+								OPTIONALLY_VENDOR_PREFIXED_KEYFRAMES_AT_RULE.test(name) &&
+								isLocalMode()
+							) {
 								const ident = walkCssTokens.eatIdentSequenceOrString(
 									input,
 									end
 								);
 								if (!ident) return end;
-								const name =
+								const name = unescapeIdentifier(
 									ident[2] === true
 										? input.slice(ident[0], ident[1])
-										: input.slice(ident[0] + 1, ident[1] - 1);
-								if (isLocalMode()) {
-									const { line: sl, column: sc } = locConverter.get(ident[0]);
-									const { line: el, column: ec } = locConverter.get(ident[1]);
-									const dep = new CssLocalIdentifierDependency(name, [
-										ident[0],
-										ident[1]
-									]);
-									dep.setLoc(sl, sc, el, ec);
-									module.addDependency(dep);
-								}
+										: input.slice(ident[0] + 1, ident[1] - 1)
+								);
+								const { line: sl, column: sc } = locConverter.get(ident[0]);
+								const { line: el, column: ec } = locConverter.get(ident[1]);
+								const dep = new CssLocalIdentifierDependency(name, [
+									ident[0],
+									ident[1]
+								]);
+								dep.setLoc(sl, sc, el, ec);
+								module.addDependency(dep);
 								return ident[1];
-							} else if (name === "@property") {
+							} else if (name === "@property" && isLocalMode()) {
 								const ident = walkCssTokens.eatIdentSequence(input, end);
 								if (!ident) return end;
 								let name = input.slice(ident[0], ident[1]);
-								if (!name.startsWith("--")) return end;
-								name = name.slice(2);
+								if (!name.startsWith("--") || name.length < 3) return end;
+								name = unescapeIdentifier(name.slice(2));
 								declaredCssVariables.add(name);
-								if (isLocalMode()) {
-									const { line: sl, column: sc } = locConverter.get(ident[0]);
-									const { line: el, column: ec } = locConverter.get(ident[1]);
-									const dep = new CssLocalIdentifierDependency(
-										name,
-										[ident[0], ident[1]],
-										"--"
-									);
-									dep.setLoc(sl, sc, el, ec);
-									module.addDependency(dep);
-								}
+								const { line: sl, column: sc } = locConverter.get(ident[0]);
+								const { line: el, column: ec } = locConverter.get(ident[1]);
+								const dep = new CssLocalIdentifierDependency(
+									name,
+									[ident[0], ident[1]],
+									"--"
+								);
+								dep.setLoc(sl, sc, el, ec);
+								module.addDependency(dep);
 								return ident[1];
-							} else if (isModules && name === "@scope") {
-								modeData = isLocalMode() ? "local" : "global";
+							} else if (name === "@scope") {
 								isNextRulePrelude = true;
 								return end;
 							}
@@ -752,19 +1067,55 @@ class CssParser extends Parser {
 				return end;
 			},
 			identifier: (input, start, end) => {
-				switch (scope) {
-					case CSS_MODE_IN_BLOCK: {
-						if (isLocalMode()) {
-							// Handle only top level values and not inside functions
-							if (inAnimationProperty && balanced.length === 0) {
-								lastIdentifier = [start, end, true];
-							} else {
-								return processLocalDeclaration(input, start, end);
+				if (isModules) {
+					if (icssDefinitions.has(input.slice(start, end))) {
+						const name = input.slice(start, end);
+						let { path, value } = icssDefinitions.get(name);
+
+						if (path) {
+							if (icssDefinitions.has(path)) {
+								const definition = icssDefinitions.get(path);
+
+								path = definition.value.slice(1, -1);
 							}
+
+							const dep = new CssIcssImportDependency(path, value, [
+								start,
+								end - 1
+							]);
+							const { line: sl, column: sc } = locConverter.get(start);
+							const { line: el, column: ec } = locConverter.get(end - 1);
+							dep.setLoc(sl, sc, el, ec);
+							module.addDependency(dep);
+						} else {
+							const { line: sl, column: sc } = locConverter.get(start);
+							const { line: el, column: ec } = locConverter.get(end);
+							const dep = new CssIcssSymbolDependency(name, value, [
+								start,
+								end
+							]);
+							dep.setLoc(sl, sc, el, ec);
+							module.addDependency(dep);
 						}
-						break;
+
+						return end;
+					}
+
+					switch (scope) {
+						case CSS_MODE_IN_BLOCK: {
+							if (isLocalMode()) {
+								// Handle only top level values and not inside functions
+								if (inAnimationProperty && balanced.length === 0) {
+									lastIdentifier = [start, end, true];
+								} else {
+									return processLocalDeclaration(input, start, end);
+								}
+							}
+							break;
+						}
 					}
 				}
+
 				return end;
 			},
 			delim: (input, start, end) => {
@@ -774,7 +1125,7 @@ class CssParser extends Parser {
 						end
 					);
 					if (!ident) return end;
-					const name = input.slice(ident[0], ident[1]);
+					const name = unescapeIdentifier(input.slice(ident[0], ident[1]));
 					const dep = new CssLocalIdentifierDependency(name, [
 						ident[0],
 						ident[1]
@@ -791,7 +1142,7 @@ class CssParser extends Parser {
 			hash: (input, start, end, isID) => {
 				if (isNextRulePrelude && isLocalMode() && isID) {
 					const valueStart = start + 1;
-					const name = input.slice(valueStart, end);
+					const name = unescapeIdentifier(input.slice(valueStart, end));
 					const dep = new CssLocalIdentifierDependency(name, [valueStart, end]);
 					const { line: sl, column: sc } = locConverter.get(start);
 					const { line: el, column: ec } = locConverter.get(end);
@@ -812,8 +1163,13 @@ class CssParser extends Parser {
 
 					switch (scope) {
 						case CSS_MODE_TOP_LEVEL: {
-							if (name === "export") {
-								const pos = parseExports(input, ident[1]);
+							if (name === "import") {
+								const pos = parseImportOrExport(0, input, ident[1]);
+								const dep = new ConstDependency("", [start, pos]);
+								module.addPresentationalDependency(dep);
+								return pos;
+							} else if (name === "export") {
+								const pos = parseImportOrExport(1, input, ident[1]);
 								const dep = new ConstDependency("", [start, pos]);
 								module.addPresentationalDependency(dep);
 								return pos;
@@ -901,6 +1257,10 @@ class CssParser extends Parser {
 				switch (name) {
 					case "src":
 					case "url": {
+						if (!this.url) {
+							return end;
+						}
+
 						const string = walkCssTokens.eatString(input, end);
 						if (!string) return end;
 						const { options, errors: commentErrors } = this.parseCommentOptions(
@@ -955,7 +1315,7 @@ class CssParser extends Parser {
 						return string[1];
 					}
 					default: {
-						if (IMAGE_SET_FUNCTION.test(name)) {
+						if (this.url && IMAGE_SET_FUNCTION.test(name)) {
 							lastTokenEndForComments = end;
 							const values = walkCssTokens.eatImageSetStrings(input, end, {
 								comment
@@ -1025,21 +1385,83 @@ class CssParser extends Parser {
 							}
 
 							if (name === "var") {
-								const ident = walkCssTokens.eatIdentSequence(input, end);
-								if (!ident) return end;
-								const name = input.slice(ident[0], ident[1]);
-								if (!name.startsWith("--")) return end;
-								const { line: sl, column: sc } = locConverter.get(ident[0]);
-								const { line: el, column: ec } = locConverter.get(ident[1]);
-								const dep = new CssSelfLocalIdentifierDependency(
-									name.slice(2),
-									[ident[0], ident[1]],
-									"--",
-									declaredCssVariables
+								const customIdent = walkCssTokens.eatIdentSequence(input, end);
+								if (!customIdent) return end;
+								let name = input.slice(customIdent[0], customIdent[1]);
+								// A custom property is any property whose name starts with two dashes (U+002D HYPHEN-MINUS), like --foo.
+								// The <custom-property-name> production corresponds to this:
+								// it’s defined as any <dashed-ident> (a valid identifier that starts with two dashes),
+								// except -- itself, which is reserved for future use by CSS.
+								if (!name.startsWith("--") || name.length < 3) return end;
+								name = unescapeIdentifier(
+									input.slice(customIdent[0] + 2, customIdent[1])
 								);
-								dep.setLoc(sl, sc, el, ec);
-								module.addDependency(dep);
-								return ident[1];
+								const afterCustomIdent = walkCssTokens.eatWhitespaceAndComments(
+									input,
+									customIdent[1]
+								);
+								if (
+									input.charCodeAt(afterCustomIdent) === CC_LOWER_F ||
+									input.charCodeAt(afterCustomIdent) === CC_UPPER_F
+								) {
+									const fromWord = walkCssTokens.eatIdentSequence(
+										input,
+										afterCustomIdent
+									);
+									if (
+										!fromWord ||
+										input.slice(fromWord[0], fromWord[1]).toLowerCase() !==
+											"from"
+									) {
+										return end;
+									}
+									const from = walkCssTokens.eatIdentSequenceOrString(
+										input,
+										walkCssTokens.eatWhitespaceAndComments(input, fromWord[1])
+									);
+									if (!from) {
+										return end;
+									}
+									const path = input.slice(from[0], from[1]);
+									if (from[2] === true && path === "global") {
+										const dep = new ConstDependency("", [
+											customIdent[1],
+											from[1]
+										]);
+										module.addPresentationalDependency(dep);
+										return end;
+									} else if (from[2] === false) {
+										const dep = new CssIcssImportDependency(
+											path.slice(1, -1),
+											name,
+											[customIdent[0], from[1] - 1]
+										);
+										const { line: sl, column: sc } = locConverter.get(
+											customIdent[0]
+										);
+										const { line: el, column: ec } = locConverter.get(
+											from[1] - 1
+										);
+										dep.setLoc(sl, sc, el, ec);
+										module.addDependency(dep);
+									}
+								} else {
+									const { line: sl, column: sc } = locConverter.get(
+										customIdent[0]
+									);
+									const { line: el, column: ec } = locConverter.get(
+										customIdent[1]
+									);
+									const dep = new CssSelfLocalIdentifierDependency(
+										name,
+										[customIdent[0], customIdent[1]],
+										"--",
+										declaredCssVariables
+									);
+									dep.setLoc(sl, sc, el, ec);
+									module.addDependency(dep);
+									return end;
+								}
 							}
 						}
 					}
@@ -1176,3 +1598,5 @@ class CssParser extends Parser {
 }
 
 module.exports = CssParser;
+module.exports.escapeIdentifier = escapeIdentifier;
+module.exports.unescapeIdentifier = unescapeIdentifier;

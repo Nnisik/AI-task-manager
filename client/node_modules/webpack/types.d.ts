@@ -513,7 +513,7 @@ declare interface BannerPluginOptions {
 	raw?: boolean;
 
 	/**
-	 * Specifies the banner.
+	 * Specifies the stage when add a banner.
 	 */
 	stage?: number;
 
@@ -1493,11 +1493,6 @@ declare interface ChunkRenderContextCssModulesPlugin {
 	 * the runtime template
 	 */
 	runtimeTemplate: RuntimeTemplate;
-
-	/**
-	 * meta data for runtime
-	 */
-	metaData: string[];
 
 	/**
 	 * undo path to css file
@@ -3130,9 +3125,19 @@ declare interface CssAutoGeneratorOptions {
  */
 declare interface CssAutoParserOptions {
 	/**
+	 * Enable/disable `@import` at-rules handling.
+	 */
+	import?: boolean;
+
+	/**
 	 * Use ES modules named export for css exports.
 	 */
 	namedExports?: boolean;
+
+	/**
+	 * Enable/disable `url()`/`image-set()`/`src()`/`image()` functions handling.
+	 */
+	url?: boolean;
 }
 
 /**
@@ -3186,9 +3191,19 @@ declare interface CssGlobalGeneratorOptions {
  */
 declare interface CssGlobalParserOptions {
 	/**
+	 * Enable/disable `@import` at-rules handling.
+	 */
+	import?: boolean;
+
+	/**
 	 * Use ES modules named export for css exports.
 	 */
 	namedExports?: boolean;
+
+	/**
+	 * Enable/disable `url()`/`image-set()`/`src()`/`image()` functions handling.
+	 */
+	url?: boolean;
 }
 declare interface CssImportDependencyMeta {
 	layer?: string;
@@ -3270,9 +3285,19 @@ declare interface CssModuleGeneratorOptions {
  */
 declare interface CssModuleParserOptions {
 	/**
+	 * Enable/disable `@import` at-rules handling.
+	 */
+	import?: boolean;
+
+	/**
 	 * Use ES modules named export for css exports.
 	 */
 	namedExports?: boolean;
+
+	/**
+	 * Enable/disable `url()`/`image-set()`/`src()`/`image()` functions handling.
+	 */
+	url?: boolean;
 }
 declare class CssModulesPlugin {
 	constructor();
@@ -3315,9 +3340,19 @@ declare class CssModulesPlugin {
  */
 declare interface CssParserOptions {
 	/**
+	 * Enable/disable `@import` at-rules handling.
+	 */
+	import?: boolean;
+
+	/**
 	 * Use ES modules named export for css exports.
 	 */
 	namedExports?: boolean;
+
+	/**
+	 * Enable/disable `url()`/`image-set()`/`src()`/`image()` functions handling.
+	 */
+	url?: boolean;
 }
 type Declaration = FunctionDeclaration | VariableDeclaration | ClassDeclaration;
 declare class DefinePlugin {
@@ -4511,7 +4546,7 @@ declare interface ExportSpec {
 	 */
 	hidden?: boolean;
 }
-type ExportedVariableInfo = string | ScopeInfo | VariableInfo;
+type ExportedVariableInfo = string | VariableInfo | ScopeInfo;
 declare abstract class ExportsInfo {
 	get ownedExports(): Iterable<ExportInfo>;
 	get orderedOwnedExports(): Iterable<ExportInfo>;
@@ -6775,7 +6810,7 @@ declare class JavascriptParser extends Parser {
 			| undefined
 			| ((
 					arg0: string,
-					arg1: string | ScopeInfo | VariableInfo,
+					arg1: string | VariableInfo | ScopeInfo,
 					arg2: () => string[]
 			  ) => any),
 		defined: undefined | ((arg0: string) => any),
@@ -7108,6 +7143,7 @@ declare class JavascriptParser extends Parser {
 			| ExportAllDeclarationJavascriptParser
 			| ImportExpressionJavascriptParser
 	) => undefined | ImportAttributes;
+	static VariableInfo: typeof VariableInfo;
 }
 
 /**
@@ -7465,6 +7501,7 @@ declare interface KnownBuildMeta {
 	strictHarmonyModule?: boolean;
 	async?: boolean;
 	sideEffectFree?: boolean;
+	exportsFinalName?: Record<string, string>;
 }
 declare interface KnownCreateStatsOptionsContext {
 	forToString?: boolean;
@@ -8603,6 +8640,17 @@ declare class MemoryCachePlugin {
 	 */
 	apply(compiler: Compiler): void;
 }
+declare class MergeDuplicateChunksPlugin {
+	constructor(options?: MergeDuplicateChunksPluginOptions);
+	options: MergeDuplicateChunksPluginOptions;
+	apply(compiler: Compiler): void;
+}
+declare interface MergeDuplicateChunksPluginOptions {
+	/**
+	 * Specifies the stage for merging duplicate chunks.
+	 */
+	stage?: number;
+}
 declare class MinChunkSizePlugin {
 	constructor(options: MinChunkSizePluginOptions);
 	options: MinChunkSizePluginOptions;
@@ -8683,6 +8731,7 @@ declare class Module extends DependenciesBlock {
 	factoryMeta?: FactoryMeta;
 	useSourceMap: boolean;
 	useSimpleSourceMap: boolean;
+	hot: boolean;
 	buildMeta?: BuildMeta;
 	buildInfo?: BuildInfo;
 	presentationalDependencies?: Dependency[];
@@ -10593,11 +10642,6 @@ declare interface Output {
 		| ((pathData: PathData, assetInfo?: AssetInfo) => string);
 
 	/**
-	 * Compress the data in the head tag of CSS files.
-	 */
-	cssHeadDataCompression?: boolean;
-
-	/**
 	 * Similar to `output.devtoolModuleFilenameTemplate`, but used in the case of duplicate module identifiers.
 	 */
 	devtoolFallbackModuleFilenameTemplate?: string | Function;
@@ -10890,11 +10934,6 @@ declare interface OutputNormalized {
 	cssFilename?:
 		| string
 		| ((pathData: PathData, assetInfo?: AssetInfo) => string);
-
-	/**
-	 * Compress the data in the head tag of CSS files.
-	 */
-	cssHeadDataCompression?: boolean;
 
 	/**
 	 * Similar to `output.devtoolModuleFilenameTemplate`, but used in the case of duplicate module identifiers.
@@ -11592,6 +11631,20 @@ declare interface ReadAsyncOptions<TBuffer extends ArrayBufferView> {
 	position?: null | number | bigint;
 	buffer?: TBuffer;
 }
+declare class ReadFileCompileAsyncWasmPlugin {
+	constructor(__0?: ReadFileCompileAsyncWasmPluginOptions);
+
+	/**
+	 * Apply the plugin
+	 */
+	apply(compiler: Compiler): void;
+}
+declare interface ReadFileCompileAsyncWasmPluginOptions {
+	/**
+	 * use import?
+	 */
+	import?: boolean;
+}
 declare class ReadFileCompileWasmPlugin {
 	constructor(options?: ReadFileCompileWasmPluginOptions);
 	options: ReadFileCompileWasmPluginOptions;
@@ -11606,6 +11659,11 @@ declare interface ReadFileCompileWasmPluginOptions {
 	 * mangle imports
 	 */
 	mangleImports?: boolean;
+
+	/**
+	 * use import?
+	 */
+	import?: boolean;
 }
 declare interface ReadFileFs {
 	(
@@ -12219,11 +12277,6 @@ declare interface RenderContextCssModulesPlugin {
 	 * the unique name
 	 */
 	uniqueName: string;
-
-	/**
-	 * need compress
-	 */
-	cssHeadDataCompression: boolean;
 
 	/**
 	 * undo path to css file
@@ -13445,6 +13498,7 @@ declare abstract class RuntimeTemplate {
 	contentHashReplacement: string;
 	isIIFE(): undefined | boolean;
 	isModule(): undefined | boolean;
+	isNeutralPlatform(): boolean;
 	supportsConst(): undefined | boolean;
 	supportsArrowFunction(): undefined | boolean;
 	supportsAsyncFunction(): undefined | boolean;
@@ -13865,7 +13919,7 @@ declare interface RuntimeValueOptions {
  * to create the range of the _parent node_.
  */
 declare interface ScopeInfo {
-	definitions: StackedMap<string, ScopeInfo | VariableInfo>;
+	definitions: StackedMap<string, VariableInfo | ScopeInfo>;
 	topLevelScope: boolean | "arrow";
 	inShorthand: string | boolean;
 	inTaggedTemplateTag: boolean;
@@ -14175,6 +14229,7 @@ declare interface SourceMap {
 	sourceRoot?: string;
 	sourcesContent?: string[];
 	names?: string[];
+	debugId?: string;
 }
 declare class SourceMapDevToolPlugin {
 	constructor(options?: SourceMapDevToolPluginOptions);
@@ -14207,6 +14262,11 @@ declare interface SourceMapDevToolPluginOptions {
 	 * Indicates whether column mappings should be used (defaults to true).
 	 */
 	columns?: boolean;
+
+	/**
+	 * Emit debug IDs into source and SourceMap.
+	 */
+	debugIds?: boolean;
 
 	/**
 	 * Exclude modules that match the given value from source map generation.
@@ -15190,7 +15250,12 @@ type UsageStateType = 0 | 1 | 2 | 3 | 4;
 type UsedName = string | false | string[];
 type Value = string | number | boolean | RegExp;
 type ValueCacheVersion = string | Set<string>;
-declare abstract class VariableInfo {
+declare class VariableInfo {
+	constructor(
+		declaredScope: ScopeInfo,
+		freeName?: string | true,
+		tagInfo?: TagInfo
+	);
 	declaredScope: ScopeInfo;
 	freeName?: string | true;
 	tagInfo?: TagInfo;
@@ -16082,6 +16147,7 @@ declare namespace exports {
 			AggressiveMergingPlugin,
 			AggressiveSplittingPlugin,
 			LimitChunkCountPlugin,
+			MergeDuplicateChunksPlugin,
 			MinChunkSizePlugin,
 			ModuleConcatenationPlugin,
 			RealContentHashPlugin,
@@ -16098,8 +16164,8 @@ declare namespace exports {
 	}
 	export namespace web {
 		export {
-			FetchCompileAsyncWasmPlugin,
 			FetchCompileWasmPlugin,
+			FetchCompileAsyncWasmPlugin,
 			JsonpChunkLoadingRuntimeModule,
 			JsonpTemplatePlugin,
 			CssLoadingRuntimeModule
@@ -16117,7 +16183,8 @@ declare namespace exports {
 			NodeSourcePlugin,
 			NodeTargetPlugin,
 			NodeTemplatePlugin,
-			ReadFileCompileWasmPlugin
+			ReadFileCompileWasmPlugin,
+			ReadFileCompileAsyncWasmPlugin
 		};
 	}
 	export namespace electron {

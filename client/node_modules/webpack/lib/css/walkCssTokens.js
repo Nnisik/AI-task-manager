@@ -22,6 +22,7 @@
  * @property {(function(string, number, number): number)=} rightCurlyBracket
  * @property {(function(string, number, number): number)=} semicolon
  * @property {(function(string, number, number): number)=} comma
+ * @property {(function(): boolean)=} needTerminate
  */
 
 /** @typedef {function(string, number, CssTokenCallbacks): number} CharHandler */
@@ -77,13 +78,6 @@ const CC_HYPHEN_MINUS = "-".charCodeAt(0);
 const CC_LESS_THAN_SIGN = "<".charCodeAt(0);
 const CC_GREATER_THAN_SIGN = ">".charCodeAt(0);
 
-/**
- * @param {number} cc char code
- * @returns {boolean} true, if cc is a newline
- */
-const _isNewLine = cc =>
-	cc === CC_LINE_FEED || cc === CC_CARRIAGE_RETURN || cc === CC_FORM_FEED;
-
 /** @type {CharHandler} */
 const consumeSpace = (input, pos, _callbacks) => {
 	// Consume as much whitespace as possible.
@@ -95,12 +89,31 @@ const consumeSpace = (input, pos, _callbacks) => {
 	return pos;
 };
 
+// U+000A LINE FEED. Note that U+000D CARRIAGE RETURN and U+000C FORM FEED are not included in this definition,
+// as they are converted to U+000A LINE FEED during preprocessing.
+//
+// Replace any U+000D CARRIAGE RETURN (CR) code points, U+000C FORM FEED (FF) code points, or pairs of U+000D CARRIAGE RETURN (CR) followed by U+000A LINE FEED (LF) in input by a single U+000A LINE FEED (LF) code point.
+
 /**
  * @param {number} cc char code
  * @returns {boolean} true, if cc is a newline
  */
 const _isNewline = cc =>
 	cc === CC_LINE_FEED || cc === CC_CARRIAGE_RETURN || cc === CC_FORM_FEED;
+
+/**
+ * @param {number} cc char code
+ * @param {string} input input
+ * @param {number} pos position
+ * @returns {number} position
+ */
+const consumeExtraNewline = (cc, input, pos) => {
+	if (cc === CC_CARRIAGE_RETURN && input.charCodeAt(pos) === CC_LINE_FEED) {
+		pos++;
+	}
+
+	return pos;
+};
 
 /**
  * @param {number} cc char code
@@ -215,8 +228,11 @@ const _consumeAnEscapedCodePoint = (input, pos) => {
 			}
 		}
 
-		if (_isWhiteSpace(input.charCodeAt(pos))) {
+		const cc = input.charCodeAt(pos);
+
+		if (_isWhiteSpace(cc)) {
 			pos++;
+			pos = consumeExtraNewline(cc, input, pos);
 		}
 
 		return pos;
@@ -266,7 +282,7 @@ const consumeAStringToken = (input, pos, callbacks) => {
 		// newline
 		// This is a parse error.
 		// Reconsume the current input code point, create a <bad-string-token>, and return it.
-		else if (_isNewLine(cc)) {
+		else if (_isNewline(cc)) {
 			pos--;
 			// bad string
 			return pos;
@@ -278,8 +294,10 @@ const consumeAStringToken = (input, pos, callbacks) => {
 				return pos;
 			}
 			// Otherwise, if the next input code point is a newline, consume it.
-			else if (_isNewLine(input.charCodeAt(pos))) {
+			else if (_isNewline(input.charCodeAt(pos))) {
+				const cc = input.charCodeAt(pos);
 				pos++;
+				pos = consumeExtraNewline(cc, input, pos);
 			}
 			// Otherwise, (the stream starts with a valid escape) consume an escaped code point and append the returned code point to the <string-token>’s value.
 			else if (_ifTwoCodePointsAreValidEscape(input, pos)) {
@@ -350,7 +368,7 @@ const _ifTwoCodePointsAreValidEscape = (input, pos, f, s) => {
 	// If the first code point is not U+005C REVERSE SOLIDUS (\), return false.
 	if (first !== CC_REVERSE_SOLIDUS) return false;
 	// Otherwise, if the second code point is a newline, return false.
-	if (_isNewLine(second)) return false;
+	if (_isNewline(second)) return false;
 	// Otherwise, return true.
 	return true;
 };
@@ -1156,12 +1174,12 @@ const consumeAToken = (input, pos, callbacks) => {
 
 /**
  * @param {string} input input css
- * @param {CssTokenCallbacks} callbacks callbacks
- * @returns {void}
+ * @param {number=} pos pos
+ * @param {CssTokenCallbacks=} callbacks callbacks
+ * @returns {number} pos
  */
-module.exports = (input, callbacks) => {
+module.exports = (input, pos = 0, callbacks = {}) => {
 	// This section describes how to consume a token from a stream of code points. It will return a single token of any type.
-	let pos = 0;
 	while (pos < input.length) {
 		// Consume comments.
 		pos = consumeComments(input, pos, callbacks);
@@ -1169,7 +1187,13 @@ module.exports = (input, callbacks) => {
 		// Consume the next input code point.
 		pos++;
 		pos = consumeAToken(input, pos, callbacks);
+
+		if (callbacks.needTerminate && callbacks.needTerminate()) {
+			break;
+		}
 	}
+
+	return pos;
 };
 
 module.exports.isIdentStartCodePoint = isIdentStartCodePoint;
@@ -1253,10 +1277,8 @@ module.exports.eatWhiteLine = (input, pos) => {
 			pos++;
 			continue;
 		}
-		if (_isNewLine(cc)) pos++;
-		// For `\r\n`
-		if (cc === CC_CARRIAGE_RETURN && input.charCodeAt(pos + 1) === CC_LINE_FEED)
-			pos++;
+		if (_isNewline(cc)) pos++;
+		pos = consumeExtraNewline(cc, input, pos);
 		break;
 	}
 

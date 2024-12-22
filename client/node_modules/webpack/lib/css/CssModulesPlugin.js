@@ -10,7 +10,8 @@ const {
 	ConcatSource,
 	PrefixSource,
 	ReplaceSource,
-	CachedSource
+	CachedSource,
+	RawSource
 } = require("webpack-sources");
 const Compilation = require("../Compilation");
 const CssModule = require("../CssModule");
@@ -24,20 +25,23 @@ const {
 } = require("../ModuleTypeConstants");
 const RuntimeGlobals = require("../RuntimeGlobals");
 const SelfModuleFactory = require("../SelfModuleFactory");
+const Template = require("../Template");
 const WebpackError = require("../WebpackError");
-const CssExportDependency = require("../dependencies/CssExportDependency");
+const CssIcssExportDependency = require("../dependencies/CssIcssExportDependency");
+const CssIcssImportDependency = require("../dependencies/CssIcssImportDependency");
+const CssIcssSymbolDependency = require("../dependencies/CssIcssSymbolDependency");
 const CssImportDependency = require("../dependencies/CssImportDependency");
 const CssLocalIdentifierDependency = require("../dependencies/CssLocalIdentifierDependency");
 const CssSelfLocalIdentifierDependency = require("../dependencies/CssSelfLocalIdentifierDependency");
 const CssUrlDependency = require("../dependencies/CssUrlDependency");
 const StaticExportsDependency = require("../dependencies/StaticExportsDependency");
+const JavascriptModulesPlugin = require("../javascript/JavascriptModulesPlugin");
 const { compareModulesByIdentifier } = require("../util/comparators");
 const createSchemaValidation = require("../util/create-schema-validation");
 const createHash = require("../util/createHash");
 const { getUndoPath } = require("../util/identifier");
 const memoize = require("../util/memoize");
 const nonNumericOnlyHash = require("../util/nonNumericOnlyHash");
-const CssExportsGenerator = require("./CssExportsGenerator");
 const CssGenerator = require("./CssGenerator");
 const CssParser = require("./CssParser");
 
@@ -49,7 +53,6 @@ const CssParser = require("./CssParser");
 /** @typedef {import("../Compilation").ChunkHashContext} ChunkHashContext */
 /** @typedef {import("../Compiler")} Compiler */
 /** @typedef {import("../CssModule").Inheritance} Inheritance */
-/** @typedef {import("../DependencyTemplate").CssExportsData} CssExportsData */
 /** @typedef {import("../Module")} Module */
 /** @typedef {import("../Template").RuntimeTemplate} RuntimeTemplate */
 /** @typedef {import("../TemplatedPathPlugin").TemplatePath} TemplatePath */
@@ -64,7 +67,6 @@ const CssParser = require("./CssParser");
  * @property {CodeGenerationResults} codeGenerationResults results of code generation
  * @property {RuntimeTemplate} runtimeTemplate the runtime template
  * @property {string} uniqueName the unique name
- * @property {boolean} cssHeadDataCompression need compress
  * @property {string} undoPath undo path to css file
  * @property {CssModule[]} modules modules
  */
@@ -75,7 +77,6 @@ const CssParser = require("./CssParser");
  * @property {ChunkGraph} chunkGraph the chunk graph
  * @property {CodeGenerationResults} codeGenerationResults results of code generation
  * @property {RuntimeTemplate} runtimeTemplate the runtime template
- * @property {string[]} metaData meta data for runtime
  * @property {string} undoPath undo path to css file
  */
 
@@ -158,51 +159,6 @@ const validateParserOptions = {
 /** @type {WeakMap<Compilation, CompilationHooks>} */
 const compilationHooksMap = new WeakMap();
 
-/**
- * @param {string} str string
- * @param {boolean=} omitOptionalUnderscore if true, optional underscore is not added
- * @returns {string} escaped string
- */
-const escapeCss = (str, omitOptionalUnderscore) => {
-	const escaped = `${str}`.replace(
-		// cspell:word uffff
-		/[^a-zA-Z0-9_\u0081-\uFFFF-]/g,
-		s => `\\${s}`
-	);
-	return !omitOptionalUnderscore && /^(?!--)[0-9_-]/.test(escaped)
-		? `_${escaped}`
-		: escaped;
-};
-
-/**
- * @param {string} str string
- * @returns {string} encoded string
- */
-const lzwEncode = str => {
-	/** @type {Map<string, string>} */
-	const map = new Map();
-	let encoded = "";
-	let phrase = str[0];
-	let code = 256;
-	const maxCode = "\uFFFF".charCodeAt(0);
-	for (let i = 1; i < str.length; i++) {
-		const c = str[i];
-		if (map.has(phrase + c)) {
-			phrase += c;
-		} else {
-			encoded += phrase.length > 1 ? map.get(phrase) : phrase;
-			map.set(phrase + c, String.fromCharCode(code));
-			phrase = c;
-			if (++code > maxCode) {
-				code = 256;
-				map.clear();
-			}
-		}
-	}
-	encoded += phrase.length > 1 ? map.get(phrase) : phrase;
-	return encoded;
-};
-
 const PLUGIN_NAME = "CssModulesPlugin";
 
 class CssModulesPlugin {
@@ -233,7 +189,7 @@ class CssModulesPlugin {
 
 	constructor() {
 		/** @type {WeakMap<Source, { undoPath: string, inheritance: Inheritance, source: CachedSource }>} */
-		this._moduleCache = new WeakMap();
+		this._moduleFactoryCache = new WeakMap();
 	}
 
 	/**
@@ -247,6 +203,14 @@ class CssModulesPlugin {
 			(compilation, { normalModuleFactory }) => {
 				const hooks = CssModulesPlugin.getCompilationHooks(compilation);
 				const selfFactory = new SelfModuleFactory(compilation.moduleGraph);
+				compilation.dependencyFactories.set(
+					CssImportDependency,
+					normalModuleFactory
+				);
+				compilation.dependencyTemplates.set(
+					CssImportDependency,
+					new CssImportDependency.Template()
+				);
 				compilation.dependencyFactories.set(
 					CssUrlDependency,
 					normalModuleFactory
@@ -267,17 +231,21 @@ class CssModulesPlugin {
 					CssSelfLocalIdentifierDependency,
 					new CssSelfLocalIdentifierDependency.Template()
 				);
-				compilation.dependencyTemplates.set(
-					CssExportDependency,
-					new CssExportDependency.Template()
-				);
 				compilation.dependencyFactories.set(
-					CssImportDependency,
+					CssIcssImportDependency,
 					normalModuleFactory
 				);
 				compilation.dependencyTemplates.set(
-					CssImportDependency,
-					new CssImportDependency.Template()
+					CssIcssImportDependency,
+					new CssIcssImportDependency.Template()
+				);
+				compilation.dependencyTemplates.set(
+					CssIcssExportDependency,
+					new CssIcssExportDependency.Template()
+				);
+				compilation.dependencyTemplates.set(
+					CssIcssSymbolDependency,
+					new CssIcssSymbolDependency.Template()
 				);
 				compilation.dependencyTemplates.set(
 					StaticExportsDependency,
@@ -293,26 +261,34 @@ class CssModulesPlugin {
 						.for(type)
 						.tap(PLUGIN_NAME, parserOptions => {
 							validateParserOptions[type](parserOptions);
-							const { namedExports } = parserOptions;
+							const { url, import: importOption, namedExports } = parserOptions;
 
 							switch (type) {
 								case CSS_MODULE_TYPE:
 									return new CssParser({
+										importOption,
+										url,
 										namedExports
 									});
 								case CSS_MODULE_TYPE_GLOBAL:
 									return new CssParser({
 										defaultMode: "global",
+										importOption,
+										url,
 										namedExports
 									});
 								case CSS_MODULE_TYPE_MODULE:
 									return new CssParser({
 										defaultMode: "local",
+										importOption,
+										url,
 										namedExports
 									});
 								case CSS_MODULE_TYPE_AUTO:
 									return new CssParser({
 										defaultMode: "auto",
+										importOption,
+										url,
 										namedExports
 									});
 							}
@@ -322,17 +298,7 @@ class CssModulesPlugin {
 						.tap(PLUGIN_NAME, generatorOptions => {
 							validateGeneratorOptions[type](generatorOptions);
 
-							return generatorOptions.exportsOnly
-								? new CssExportsGenerator(
-										generatorOptions.exportsConvention,
-										generatorOptions.localIdentName,
-										generatorOptions.esModule
-									)
-								: new CssGenerator(
-										generatorOptions.exportsConvention,
-										generatorOptions.localIdentName,
-										generatorOptions.esModule
-									);
+							return new CssGenerator(generatorOptions);
 						});
 					normalModuleFactory.hooks.createModuleClass
 						.for(type)
@@ -395,8 +361,38 @@ class CssModulesPlugin {
 							return new CssModule(createData);
 						});
 				}
+
+				JavascriptModulesPlugin.getCompilationHooks(
+					compilation
+				).renderModuleContent.tap(PLUGIN_NAME, (source, module) => {
+					if (module instanceof CssModule && module.hot) {
+						const exports = module.buildInfo.cssData.exports;
+						const stringifiedExports = JSON.stringify(
+							JSON.stringify(
+								Array.from(exports).reduce((obj, [key, value]) => {
+									obj[key] = value;
+									return obj;
+								}, {})
+							)
+						);
+
+						const hmrCode = Template.asString([
+							"",
+							`var __webpack_css_exports__ = ${stringifiedExports};`,
+							"// only invalidate when locals change",
+							"if (module.hot.data && module.hot.data.__webpack_css_exports__ && module.hot.data.__webpack_css_exports__ != __webpack_css_exports__) {",
+							Template.indent("module.hot.invalidate();"),
+							"} else {",
+							Template.indent("module.hot.accept();"),
+							"}",
+							"module.hot.dispose(function(data) { data.__webpack_css_exports__ = __webpack_css_exports__; });"
+						]);
+
+						return new ConcatSource(source, "\n", new RawSource(hmrCode));
+					}
+				});
 				const orderedCssModulesPerChunk = new WeakMap();
-				compilation.hooks.afterCodeGeneration.tap("CssModulesPlugin", () => {
+				compilation.hooks.afterCodeGeneration.tap(PLUGIN_NAME, () => {
 					const { chunkGraph } = compilation;
 					for (const chunk of compilation.chunks) {
 						if (CssModulesPlugin.chunkHasCss(chunk, chunkGraph)) {
@@ -407,13 +403,10 @@ class CssModulesPlugin {
 						}
 					}
 				});
-				compilation.hooks.chunkHash.tap(
-					"CssModulesPlugin",
-					(chunk, hash, context) => {
-						hooks.chunkHash.call(chunk, hash, context);
-					}
-				);
-				compilation.hooks.contentHash.tap("CssModulesPlugin", chunk => {
+				compilation.hooks.chunkHash.tap(PLUGIN_NAME, (chunk, hash, context) => {
+					hooks.chunkHash.call(chunk, hash, context);
+				});
+				compilation.hooks.contentHash.tap(PLUGIN_NAME, chunk => {
 					const {
 						chunkGraph,
 						codeGenerationResults,
@@ -483,8 +476,6 @@ class CssModulesPlugin {
 										chunkGraph,
 										codeGenerationResults,
 										uniqueName: compilation.outputOptions.uniqueName,
-										cssHeadDataCompression:
-											compilation.outputOptions.cssHeadDataCompression,
 										undoPath,
 										modules,
 										runtimeTemplate
@@ -522,7 +513,6 @@ class CssModulesPlugin {
 					onceForChunkSet.add(chunk);
 					if (!isEnabledForChunk(chunk)) return;
 
-					set.add(RuntimeGlobals.moduleFactoriesAddOnly);
 					set.add(RuntimeGlobals.makeNamespaceObject);
 
 					const CssLoadingRuntimeModule = getCssLoadingRuntimeModule();
@@ -570,7 +560,6 @@ class CssModulesPlugin {
 						}
 						set.add(RuntimeGlobals.publicPath);
 						set.add(RuntimeGlobals.getChunkCssFilename);
-						set.add(RuntimeGlobals.moduleFactoriesAddOnly);
 					});
 			}
 		);
@@ -728,8 +717,7 @@ class CssModulesPlugin {
 	 * @returns {Source} css module source
 	 */
 	renderModule(module, renderContext, hooks) {
-		const { codeGenerationResults, chunk, undoPath, chunkGraph, metaData } =
-			renderContext;
+		const { codeGenerationResults, chunk, undoPath } = renderContext;
 		const codeGenResult = codeGenerationResults.get(module, chunk.runtime);
 		const moduleSourceContent =
 			/** @type {Source} */
@@ -737,8 +725,7 @@ class CssModulesPlugin {
 				codeGenResult.sources.get("css") ||
 					codeGenResult.sources.get("css-import")
 			);
-
-		const cacheEntry = this._moduleCache.get(moduleSourceContent);
+		const cacheEntry = this._moduleFactoryCache.get(moduleSourceContent);
 
 		/** @type {Inheritance} */
 		const inheritance = [[module.cssLayer, module.supports, module.media]];
@@ -760,9 +747,9 @@ class CssModulesPlugin {
 		) {
 			source = cacheEntry.source;
 		} else {
-			const moduleSourceCode = /** @type {string} */ (
-				moduleSourceContent.source()
-			);
+			const moduleSourceCode =
+				/** @type {string} */
+				(moduleSourceContent.source());
 			const publicPathAutoRegex = new RegExp(
 				CssUrlDependency.PUBLIC_PATH_AUTO,
 				"g"
@@ -814,34 +801,13 @@ class CssModulesPlugin {
 			}
 
 			source = new CachedSource(moduleSource);
-			this._moduleCache.set(moduleSourceContent, {
+			this._moduleFactoryCache.set(moduleSourceContent, {
 				inheritance,
 				undoPath,
 				source
 			});
 		}
-		/** @type {CssExportsData | undefined} */
-		const cssExportsData =
-			codeGenResult.data && codeGenResult.data.get("css-exports");
-		const exports = cssExportsData && cssExportsData.exports;
-		const esModule = cssExportsData && cssExportsData.esModule;
-		let moduleId = String(chunkGraph.getModuleId(module));
 
-		// When `optimization.moduleIds` is `named` the module id is a path, so we need to normalize it between platforms
-		if (typeof moduleId === "string") {
-			moduleId = moduleId.replace(/\\/g, "/");
-		}
-
-		metaData.push(
-			`${
-				exports
-					? Array.from(
-							exports,
-							([n, v]) => `${escapeCss(n)}:${escapeCss(v)}/`
-						).join("")
-					: ""
-			}${esModule ? "&" : ""}${escapeCss(moduleId)}`
-		);
 		return tryRunOrWebpackError(
 			() => hooks.renderModulePackage.call(source, module, renderContext),
 			"CssModulesPlugin.getCompilationHooks().renderModulePackage"
@@ -855,8 +821,6 @@ class CssModulesPlugin {
 	 */
 	renderChunk(
 		{
-			uniqueName,
-			cssHeadDataCompression,
 			undoPath,
 			chunk,
 			chunkGraph,
@@ -867,14 +831,11 @@ class CssModulesPlugin {
 		hooks
 	) {
 		const source = new ConcatSource();
-		/** @type {string[]} */
-		const metaData = [];
 		for (const module of modules) {
 			try {
 				const moduleSource = this.renderModule(
 					module,
 					{
-						metaData,
 						undoPath,
 						chunk,
 						chunkGraph,
@@ -890,13 +851,6 @@ class CssModulesPlugin {
 				throw err;
 			}
 		}
-		const metaDataStr = metaData.join(",");
-		source.add(
-			`head{--webpack-${escapeCss(
-				(uniqueName ? `${uniqueName}-` : "") + chunk.id,
-				true
-			)}:${cssHeadDataCompression ? lzwEncode(metaDataStr) : metaDataStr};}`
-		);
 		chunk.rendered = true;
 		return source;
 	}
