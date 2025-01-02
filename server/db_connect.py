@@ -58,3 +58,6 @@ class DBConnect:
     def __close(self):
         self.cur.close()
         self.conn.close()
+
+conn = DBConnect()
+print(conn.get_all_tasks())

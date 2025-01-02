@@ -4,8 +4,8 @@ from flask import Flask, render_template, jsonify
 from flask_cors import CORS
 from flask_restful import Resource, Api, reqparse
 
-from server.ai.ai import categorize_task, predict_priority
-from server.db_connect import DBConnect
+# from ai.ai import categorize_task, predict_priority
+from db_connect import DBConnect
 
 # connection to database
 app = Flask(__name__)
@@ -52,7 +52,12 @@ class Task():
         self.priority = priority
 
     def create_new_task(self):
-        db_connection.create_new_task(self.content, self.date, self.group, self.status, self.priority)
+        db_connection.create_new_task(
+            self.content,
+            self.date,
+            self.group,
+            self.status,
+            self.priority)
 
     def modify_content(self, content):
         db_connection.update_task_content(self.id, content)
@@ -85,10 +90,12 @@ class TasksList(Resource):
 
         try:
             # Automatic group selection for task using AI
-            task_group = categorize_task(args["content"])
+            # task_group = categorize_task(args["content"])
+            task_group = "Personal"
 
             # Automatic selection of a priority status based on task
-            task_priority = predict_priority(args["content"])
+            # task_priority = predict_priority(args["content"])
+            task_priority = 3
 
             # Creating and adding the task to the database
             task = Task(
