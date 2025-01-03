@@ -55,8 +55,6 @@ To get a local copy of this project up and running, follow these steps:
 6. **Run index.html file** in local browser
 
 ### Currently work on
-* Style modification
-  * Change styling for priority indicator (small circle near the task title)
 * Mobile layout
 
 ### Future Improvements
