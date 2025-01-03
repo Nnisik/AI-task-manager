@@ -123,6 +123,10 @@ ul {
     }
 }
 
+.inline-filters {
+    display: none;
+}
+
 .no-tasks-message {
     text-align: center;
     font-size: 1rem;
@@ -168,8 +172,8 @@ ul {
     &::before {
         position: absolute;
         content: "";
-        bottom: 50%;
-        right: -30%;
+        bottom: 49.9%;
+        right: -18px;
         transform: translateY(50%);
         width: 10px;
         height: 10px;
@@ -191,11 +195,6 @@ ul {
     border-radius: 24px;
     font-size: 0.8rem;
     transition-duration: var(--transition-duration);
-
-    &:hover {
-        background: var(--accent-color);
-        color: var(--background-color);
-    }
 }
 
 .task__date {
@@ -278,11 +277,11 @@ ul {
 .close-button {
     width: fit-content;
     position: relative;
-    top: -15px;
-    right: -250px;
+    top: -20px;
+    right: -235px;
     background: transparent;
     font-size: 1rem;
-    color: gray;
+    color: grey;
     transition: var(--transition-duration);
 
     &:hover {
@@ -294,7 +293,7 @@ ul {
     position: absolute;
     bottom: 1rem;
     right: 1rem;
-    font-size: 2rem;
+    font-size: 1.5rem;
     height: 38px;
     aspect-ratio: 1/1;
     border-radius: 50%;

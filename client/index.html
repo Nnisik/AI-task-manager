@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Hi</title>
   <link rel="stylesheet" href="src/css/style.css">
+  <link rel="stylesheet" href="src/css/mobile-style.css">
 </head>
 <body>
   <!-- TODO: login/sign up page section -->
@@ -33,6 +34,13 @@
     <div class="container">
       <h1 class="header">To Do List</h1>
       <!-- sorting buttons for tasks-->
+      <ul class="inline-filters flex">
+          <li class="group-item" id="all">All</li>
+          <li class="group-item" id="personal">Personal</li>
+          <li class="group-item" id="work">Work</li>
+          <li class="group-item" id="study">Study</li>
+          <li class="group-item" id="other">Other</li>
+      </ul>
       <div class="task-list-controls flex">
         <button class="no-outline-no-borders" id="by-name-sort">ABC</button>
         <button class="no-outline-no-borders" id="by-date-sort">Date</button>
@@ -41,18 +49,14 @@
       <div class="flex" id="tasks-list">
       </div>
     </div>
-  </div>
-
-  <button id="add-task-btn">+</button>
-
-  <!-- add new task form -->
+    <!-- add new task form -->
   <div id="add-task" class="modal">
     <div class="modal__content flex">
-      <button class="close-button no-outline-no-borders">x</button>
+      <button id="close-add" class="close-button no-outline-no-borders">x</button>
       <h3>Create New Task</h3>
-      <form class="new-task__form">
+      <div class="new-task__form">
         <input type="text" name="content" id="new-task__form__content" placeholder="Type your future task">
-      </form>
+      </div>
       <button class="no-outline-no-borders" id="new-task__btn">Create</button>
     </div>
   </div>
@@ -60,7 +64,7 @@
   <!-- task update form -->
   <div id="task-update" class="modal">
     <div class="modal__content flex">
-      <button class="close-button no-outline-no-borders">x</button>
+      <button id="close-update" class="close-button no-outline-no-borders">x</button>
       <h3>Update Task</h3>
       <form class="task-update__form">
         <input type="text" name="content" id="task-update__form__content">
@@ -69,6 +73,10 @@
     </div>
   </div>
 
-  <script src="./dist/main.js"></script>
+  </div>
+
+  <button id="add-task-btn">+</button>
+  <script src="dist/main.js"></script>
+  <script src="src/js/mobile.js"></script>
 </body>
 </html>

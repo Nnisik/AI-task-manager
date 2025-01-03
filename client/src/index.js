@@ -1,68 +1,47 @@
-import drawTaskList from "./js/ui";
-import {deleteTask, updateTask} from "./js/api";
-import {sortTasksByDate, sortTasksByName} from "./app/utils/sorting";
-import {addTask} from "./js/add-task";
-import showModal from "./app/utils/modal";
+import {clearTaskList, drawGroupedTasks, drawTaskList} from "./js/gallery";
+import {closeModal, showModal} from "./js/ui";
+import {createNewTask} from "./js/new-task";
 
-import {TaskListService} from "./app/services/task-list.service";
+window.onload = () => {
+    drawTaskList();
+}
 
-// global constants
-export const taskList = new TaskListService();
-export let taskNeedToUpdate;
-
-// TODO: window.onload
-// TODO: check for any currently logged users (COOKIES)
-
-// Initializes the application once the DOM is fully loaded
-document.addEventListener("DOMContentLoaded", () => {
-    drawTaskList(); // Displays tasks on page load
-
-    // Opens the "Add Task" modal
-    document.getElementById("add-task-btn").addEventListener("click", () => {
-        showModal("add-task");
-    });
-
-    // Handles the "New Task" form submission
-    document.getElementById("new-task__btn").onclick = () => {
-        addTask()
-    }
-
-    // Closes modals when the close button is clicked
-    document.querySelectorAll(".close-button").forEach((button) => {
-        button.onclick = () => {
-            document.querySelectorAll(".modal").forEach((modal) => {
-                modal.style.display = "none";
-            });
-        }
-    });
-
-    // Opens the "Edit Task" modal
-    document.querySelectorAll(".edit-btn").forEach((button) => {
-        taskNeedToUpdate = button.getAttribute("data-id");
-        button.onclick = () => {
-            showModal("task-update");
-        }
-    });
-
-    // Deletes a task when the delete button is clicked
-    document.querySelectorAll(".delete-btn").forEach((button) => {
-        button.onclick = () => {
-            deleteTask(button.getAttribute("data-id"));
-        }
+document.querySelectorAll(".group-item").forEach(item => {
+    item.addEventListener("click", () => {
+        clearTaskList();
     })
+})
 
-    // Updates a task when the update button is clicked
-    document.getElementById("task-update__btn").onclick = () => {
-        updateTask(taskNeedToUpdate);
-    }
+document.getElementById("items-all").addEventListener("click", () => {
+    drawTaskList()
+});
 
-    document.getElementById("by-name-sort").onclick = () => {
-        sortTasksByName();
-    }
+document.getElementById("items-personal").addEventListener("click", () => {
+    drawGroupedTasks("personal");
+});
 
-    document.getElementById("by-date-sort").onclick = () => {
-        sortTasksByDate();
-    }
+document.getElementById("items-work").addEventListener("click", () => {
+    drawGroupedTasks("work");
+});
 
-    console.log("Building something that's not sucks ✨");
+document.getElementById("items-study").addEventListener("click", () => {
+    drawGroupedTasks("study");
+});
+
+document.getElementById("items-other").addEventListener("click", () => {
+    drawGroupedTasks("other");
+});
+
+document.getElementById("add-task-btn").addEventListener("click", () => {
+    showModal("add-task");
+});
+
+document.getElementById("close-add").addEventListener("click", () => {
+    closeModal("add-task");
+});
+
+document.getElementById("new-task__btn").addEventListener("click", () => {
+    const newTask = document.getElementById("new-task__form__content").value;
+    createNewTask(newTask);
+    closeModal("add-task");
 });

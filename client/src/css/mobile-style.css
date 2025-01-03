@@ -1,1 +1,42 @@
 /* mobile layout */
+@media (max-width: 1000px) {
+    body {
+        padding-top: 70px;
+    }
+
+    .header {
+        font-size: 120px;
+    }
+
+    .side-sections {
+        display: none;
+    }
+
+    .container {
+        width: 80%;
+    }
+
+    .inline-filters {
+        display: flex;
+    }
+
+    .group-item {
+        font-size: 200px;
+    }
+
+    .task__title {
+        font-size: 32px;
+        margin: 12px 0 24px;
+    }
+
+    .task__date {
+        font-size: 16px;
+        margin: 12px;
+    }
+
+    .task-list-controls > button,
+    .group {
+        padding: 10px 16px;
+        font-size: 20px;
+    }
+}

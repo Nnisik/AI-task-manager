@@ -1,9 +1,9 @@
 // Display modal window by its ID
-function showModal(id) {
+export function showModal(id) {
     document.getElementById(id).style.display = "flex";
 }
 
 // Hide modal element by its ID
-function hideModal(id) {
+export function closeModal(id) {
     document.getElementById(id).style.display = "none";
 }
