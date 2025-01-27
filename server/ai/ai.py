@@ -1,9 +1,8 @@
 import re
-
 import openai
-from server import credits
+import os
 
-openai.api_key = credits.api_key
+openai.api_key =  os.getenv('API_KEY')
 
 # Task's group selection based on its content
 def categorize_task(content):

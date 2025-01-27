@@ -1,6 +1,2 @@
-./client/node_modules/
-/server/credits.py
-/server/test.py
-/client/test.html
-/client/dist/
-/client/app.js
+/client/node_modules/
+/.env

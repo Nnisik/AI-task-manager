@@ -1,4 +1,5 @@
 import psycopg2
+import os
 
 class DBConnect:
     def __init__(self):
@@ -13,7 +14,7 @@ class DBConnect:
                 host="localhost",
                 database="task_list",
                 user="postgres",
-                password="Shipovnik",
+                password=os.getenv('DATABASE_PASSWORD'),
                 port=5432)
             self.cur = self.conn.cursor()
         except Exception as error:

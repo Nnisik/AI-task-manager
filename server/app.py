@@ -1,4 +1,5 @@
 from datetime import date
+from dotenv import load_dotenv
 
 from flask import Flask, render_template, jsonify
 from flask_cors import CORS
@@ -6,6 +7,10 @@ from flask_restful import Resource, Api, reqparse
 
 # from ai.ai import categorize_task, predict_priority
 from db_connect import DBConnect
+
+
+# Load environment variables from the .env file
+load_dotenv()
 
 # connection to database
 app = Flask(__name__)
