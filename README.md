@@ -27,11 +27,11 @@ This is a full-stack to-do list application designed to enhance task management 
 - Intuitive User Interface
 
 ## Technologies Used
-- HTML
-- CSS
 - JavaScript
 - Python
 - Flask
+- HTML
+- CSS
 
 ## Getting Started
 
@@ -52,7 +52,13 @@ To get a local copy of this project up and running, follow these steps:
 5. **Run flask server** using following command
    ```bash
    python3 app.py
-6. **Run index.html file** in local browser
+6. **Navigate to frontend side directory**
+   ```bash
+   cd ../client
+7. **Set up webpack** using following command
+   ```bash
+   npm start
+8. **Run index.html file** in local browser
 
 ### Currently work on
 * Users
@@ -77,4 +83,4 @@ To get a local copy of this project up and running, follow these steps:
   * "Due time of a task is coming"
 
 ### Known Issues
-* 
+Currently, no issues found
