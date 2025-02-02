@@ -55,23 +55,26 @@ To get a local copy of this project up and running, follow these steps:
 6. **Run index.html file** in local browser
 
 ### Currently work on
-* Mobile layout
+* Users
+    * User authentification/authorization
+        * login/sign up page
+        * cookie files
+    * restructure database
+        * add userID column in task table
+        * user table
+    * user api
+        * rework task api
 
 ### Future Improvements
-* Users
-  * User authentification/authorization
-    * login/sign up page
-    * cookie files
-  * restructure database
-    * add userID column in task table
-    * user table
-  * user api
-    * rework task api
-* Style modification
-  * Task animation when it is set as Done
-* setup Docker
-* testing 
-* double tap on task to complete it
+* Setup Docker
+* Testing
+* Improve tasks creation
+    * Task creator ID
+    * Adding a due date for a task
+    * Assigning task to another user
+* Notifications
+  * "New task was assigned"
+  * "Due time of a task is coming"
 
 ### Known Issues
 * 
