@@ -1,2 +1,4 @@
+/client/dist/
 /client/node_modules/
 /.env
+/.venv/

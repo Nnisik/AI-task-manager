@@ -9,19 +9,35 @@
     }
 
     .side-sections {
+        width: 50%;
+        top: 0;
+    }
+
+    .sections {
+        margin-bottom: 100px;
+    }
+
+    .section--header {
+        font-size: 32px;
         display: none;
+    }
+
+    .groups {
+        gap: 32px;
+    }
+
+    .group-item {
+        padding: 16px 64px;
+        font-size: 24px;
+        height: fit-content;
+        width: fit-content;
+        margin: 0 64px;
+        border-radius: 24px;
     }
 
     .container {
         width: 80%;
-    }
-
-    .inline-filters {
-        display: flex;
-    }
-
-    .group-item {
-        font-size: 200px;
+        margin: 1rem auto;
     }
 
     .task__title {
