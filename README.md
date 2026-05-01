@@ -60,11 +60,24 @@ To get a local copy of this project up and running, follow these steps:
    npm start
 8. **Run index.html file** in local browser
 
+## TODO
+- [ ] finish all missing parts ("Currently work on")
+   - [ ] authentification
+   - [ ] mock user
+- [ ] tests
+- [ ] AI features
+- [ ] Environment setup documentation
+- [ ] Switch to modern tools
+- [ ] API documentation/Swagger
+- [ ] improve project organisation *
+- [ ] error handling *
+- [ ] deployment info *
+- [ ] security considerations *
+
 ### Currently work on
 * Users
     * User authentification/authorization
         * login/sign up page
-        * cookie files
     * restructure database
         * add userID column in task table
         * user table
@@ -72,7 +85,6 @@ To get a local copy of this project up and running, follow these steps:
         * rework task api
 
 ### Future Improvements
-* Setup Docker
 * Testing
 * Improve tasks creation
     * Task creator ID
