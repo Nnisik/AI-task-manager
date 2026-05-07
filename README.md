@@ -61,38 +61,12 @@ To get a local copy of this project up and running, follow these steps:
 8. **Run index.html file** in local browser
 
 ## TODO
-- [ ] finish all missing parts ("Currently work on")
-   - [ ] authentification
-   - [ ] mock user
-- [ ] tests
-- [ ] AI features
-- [ ] Environment setup documentation
-- [ ] Switch to modern tools
-- [ ] API documentation/Swagger
-- [ ] improve project organisation *
-- [ ] error handling *
-- [ ] deployment info *
-- [ ] security considerations *
-
-### Currently work on
-* Users
-    * User authentification/authorization
-        * login/sign up page
-    * restructure database
-        * add userID column in task table
-        * user table
-    * user api
-        * rework task api
-
-### Future Improvements
-* Testing
-* Improve tasks creation
-    * Task creator ID
-    * Adding a due date for a task
-    * Assigning task to another user
-* Notifications
-  * "New task was assigned"
-  * "Due time of a task is coming"
+- [ ] Transition server to Node.js
+- [ ] Implement ONE AI feature (keyword-based categorization)
+- [ ] Add tests
+- [ ] Add input validation & security
+- [ ] Modernize frontend build
+- [ ] Add API documentation
 
 ### Known Issues
 Currently, no issues found
